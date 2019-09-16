@@ -1,0 +1,48 @@
+@import url('https://fonts.googleapis.com/css?family=Rouge+Script&display=block');
+
+
+.start {
+    font-family: 'Rouge Script', cursive;
+    font-size: 1rem;
+}
+
+.lyricsContainer {
+    font-family: 'Rouge Script', cursive;
+    font-size: 1rem;
+}
+
+.lyricsContainer .card {
+    background: black;
+}
+
+.lyricsContainer .card .contents {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    transform: translateY(-50%);
+    text-align: center;
+}
+
+.lyricsContainer .card .voiceSeparator {
+    margin: 0.4rem auto;
+    height: 1px;
+    width: 1px;
+    margin: auto;
+    background: white;
+}
+
+.lyricsContainer .card .voice {
+    display: inline-block;
+    overflow: hidden;
+    padding: 0.1rem;
+    vertical-align: middle;
+}
+
+.lyricsContainer .card .voice .word {
+    display: inline-block;
+}
+
+.youtubeContainer {
+    height: 100px;
+}

@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8" />
+        <title>{{title}}</title>
+        <link rel="stylesheet" type="text/css" href="/global.scss" />
+        <link rel="stylesheet" type="text/css" href="/songs/{{name}}/{{name}}.scss" />
+        <link rel="preload" as="fetch" href="/songs/{{name}}/{{name}}.lrc" class="lyricsFile" />
+    </head>
+    <body>
+        <div class="start" style="display: none; z-index: 1;">
+            [Click to start]
+        </div>
+        <div class="container" style="opacity: 0">
+            <div class="lyricsContainer {{name}}"></div>
+            <div class="youtubeContainer">
+                <div class="player" data-youtube-id="{{youtubeId}}"></div>
+            </div>
+        </div>
+        <script type="text/javascript">
+            var tag = document.createElement('script');
+            tag.src = "https://www.youtube.com/iframe_api";
+            var firstScriptTag = document.getElementsByTagName('script')[0];
+            firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+        </script>
+        <script type="text/javascript" src="/lyrics.js"></script>
+    </body>
+</html>

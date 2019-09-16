@@ -1,0 +1,22 @@
+{
+  "name": "lyrics.js",
+  "author": {
+    "name": "Joshua Walsh",
+    "email": "josh@ymindustries.com"
+  },
+  "private": true,
+  "license": "UNLICENSED",
+  "dependencies": {
+    "handlebars": "^4.1.2",
+    "parcel-bundler": "^1.12.3",
+    "parcel-plugin-handlebars2": "^0.5.1",
+    "sass": "^1.20.3"
+  },
+  "scripts": {
+    "dev": "parcel src/index.hbs src/songs/**/*.hbs",
+    "build": "parcel build src/index.hbs src/songs/**/*.hbs"
+  },
+  "devDependencies": {
+    "typescript": "^3.5.1"
+  }
+}
