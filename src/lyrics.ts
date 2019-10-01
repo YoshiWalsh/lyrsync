@@ -397,8 +397,8 @@ function layoutLyrics() {
         voiceElms.forEach((voiceElm, i) => {
             voiceElm.style.setProperty("--voice-width", "" + voiceWidths[i]);
             voiceElm.style.setProperty("--next-voice-width", "" + (voiceWidths[i + 1] || 0));
-            voiceElm.style.setProperty("--previous-card-voice-width", "" + (previousVoiceWidths[i] || 0));
-            voiceElm.style.setProperty("--previous-card-next-voice-width", "" + (previousVoiceWidths[i + 1] || 0));
+            voiceElm.style.setProperty("--previous-card-voice-width", "" + (previousVoiceWidths[i] || voiceWidths[i]));
+            voiceElm.style.setProperty("--previous-card-next-voice-width", "" + (previousVoiceWidths[i + 1] || (voiceWidths[i + 1] || 0)));
         });
         previousVoiceWidths = voiceWidths;
     }
