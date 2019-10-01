@@ -1,11 +1,11 @@
 {
-  "name": "lyrics.js",
+  "name": "lyrsync",
   "author": {
     "name": "Joshua Walsh",
     "email": "josh@ymindustries.com"
   },
   "private": true,
-  "license": "UNLICENSED",
+  "license": "MIT",
   "dependencies": {
     "@types/youtube": "0.0.38",
     "bezier-easing": "^2.1.0",

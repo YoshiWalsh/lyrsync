@@ -1,6 +1,6 @@
-# lyrics.js
+# lyrsync
 
-Lyrics.js is a project to display immersive synchronised lyrics in a browser.
+lyrsync is a project to display immersive synchronised lyrics in a browser.
 
 ## How does it work?
 
