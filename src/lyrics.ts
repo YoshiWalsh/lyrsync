@@ -1,19 +1,16 @@
-var onYouTubeIframeAPIReady;
-
-const textMovementDistance = 0.4;
-const textMovementTime = 1;
-const cardTransitionTime = 0.5;
-const separatorTransitionTime = 2;
+import bezier from 'bezier-easing';
 
 let initialised = false;
 const ytReady = new Promise((resolve) => {
-    onYouTubeIframeAPIReady = () => { resolve(); };
+    window['onYouTubeIframeAPIReady'] = () => { resolve(); };
 })
 
-const lerp = (a, b, t) => a*(1-t)+b*t;
-const easeOutQuad = t => t*(2-t);
-const easeInOutQuad = t => t<.5 ? 2*t*t : -1+(4-2*t)*t;
+const lerp = (x: number, min: number, max: number) => min*(1-x)+max*x;
+const unlerp = (x: number, min: number, max: number) => (x-min) / (max-min);
+const clamp = (x: number, min?: number, max?: number) => Math.min(Math.max(x, min || 0), max || 1);
 
+let lyricsAst: AST;
+let renderedLyrics: Array<RenderedCard>;
 function init() {
     const youtubePromise = initialiseYoutubePlayer();
 
@@ -25,9 +22,9 @@ function init() {
         }
 
         response.text().then(responseText => {
-            const lyricsAst = parseLyrics(responseText);
-            console.log(lyricsAst);
-            renderLyrics(lyricsAst);
+            lyricsAst = parseLyrics(responseText);
+            renderedLyrics = renderLyrics();
+            console.log(renderedLyrics);
             layoutLyrics();
             youtubePromise.then(player => {
                 initialised = true;
@@ -92,16 +89,26 @@ function initialiseYoutubePlayer() {
     });
 }
 
-
+interface AST {
+    cards: Array<ASTCard>;
+}
+interface ASTCard {
+    timecode: number;
+    voices: {[voice: string]: Array<ASTWord>};
+}
+interface ASTWord {
+    timecode: number;
+    contents: string;
+}
 const timecodeRegex = /^(\d{2})\:(\d{2})\.(\d{2})$/;
 const tagRegex = /^([a-z]+)\:(.*)$/;
-function parseLyrics(lyricsFile) {
-    const cards = [];
+function parseLyrics(lyricsFile): AST {
+    const cards: Array<ASTCard> = [];
 
     let isEscaped = false;
     let currentCard = {
         timecode: null,
-        voices: []
+        voices: {}
     };
     let currentWord = {
         timecode: null,
@@ -206,34 +213,53 @@ function parseLyrics(lyricsFile) {
     };
 }
 
-const cardElms: Array<HTMLDivElement> = [];
+interface RenderedCard {
+    cardAst: ASTCard,
+    cardElm: HTMLDivElement,
+    contentsElm: HTMLDivElement,
+    voices: Array<RenderedVoice>,
+    cardTimers: Array<Timer>
+}
+interface RenderedVoice {
+    name: string,
+    voiceElm: HTMLDivElement,
+    contentsElm: HTMLDivElement,
+    words: Array<RenderedWord>
+}
+interface RenderedWord {
+    wordAst: ASTWord,
+    wordElm: HTMLSpanElement,
+    wordTimers: Array<Timer>
+}
 const container = document.querySelector<HTMLDivElement>(".lyricsContainer");
-function renderLyrics(lyricsAst) {
-    lyricsAst.cards.forEach(card => {
+function renderLyrics() {
+    return lyricsAst.cards.map<RenderedCard>(cardAst => {
         const cardElm = document.createElement("div");
-        cardElm['card'] = card;
         cardElm.classList.add("card");
-        cardElm.style.setProperty("--card-start-time", "" + card.timecode * 1000);
+        cardElm.style.setProperty("--card-start-time", "" + cardAst.timecode * 1000);
+
         const contentsElm = document.createElement("div");
         contentsElm.classList.add("contents");
-        let firstVoice = true;
-        for(let voice in card.voices) {
+
+        cardElm.appendChild(contentsElm);
+        container.appendChild(cardElm);
+
+        const voices: Array<RenderedVoice> = [];
+        for(let voice in cardAst.voices) {
             const voiceElm = document.createElement("div");
-            if(!firstVoice) {
-                const separatorElm = document.createElement("div");
-                separatorElm.classList.add("voiceSeparator");
-                separatorElm['previousVoice'] = contentsElm.lastElementChild;
-                separatorElm['nextVoice'] = voiceElm;
-                contentsElm.appendChild(separatorElm);
-            }
             voiceElm.classList.add("voice");
             voiceElm.classList.add(voice);
-            const words = card.voices[voice];
-            words.forEach(word => {
+
+            contentsElm.appendChild(voiceElm);
+
+            const voiceContentsElm = document.createElement("div");
+            voiceContentsElm.classList.add("voiceContents");
+            voiceElm.appendChild(voiceContentsElm);
+
+            const words = cardAst.voices[voice].map<RenderedWord>(wordAst => {
                 const wordElm = document.createElement("span");
-                wordElm['word'] = word;
                 wordElm.classList.add("word");
-                wordElm.innerHTML = word.contents
+                wordElm.innerHTML = wordAst.contents
                     .replace(/&/g, "&amp;")
                     .replace(/</g, "&lt;")
                     .replace(/>/g, "&gt;")
@@ -241,43 +267,140 @@ function renderLyrics(lyricsAst) {
                     .replace(/'/g, "&#039;")
                     .replace(/ /g, "&nbsp;")
                     .replace(/\n/g, "<br />");
-                voiceElm.appendChild(wordElm);
+                voiceContentsElm.appendChild(wordElm);
+
+                const wordTimers = parseTimers(getComputedStyle(wordElm).getPropertyValue("--word-timers"));
+
+                return {
+                    wordAst,
+                    wordElm,
+                    wordTimers
+                };
             });
-            contentsElm.appendChild(voiceElm);
-            firstVoice = false;
+
+            voices.push({
+                name: voice,
+                voiceElm,
+                contentsElm: voiceContentsElm,
+                words
+            });
         }
-        cardElm.appendChild(contentsElm);
-        container.appendChild(cardElm);
-        cardElms.push(cardElm);
+
+        const cardTimers = parseTimers(getComputedStyle(cardElm).getPropertyValue("--card-timers"));
+
+        return {
+            cardAst,
+            cardElm,
+            contentsElm,
+            voices,
+            cardTimers
+        };
     });
 }
 
-function layoutLyrics() {
-    const container = document.querySelector<HTMLDivElement>(".lyricsContainer");
+const oscillateFunctionGenerator = (numberOfOscillations) => (magnitude, t) => Math.sin(t * Math.PI * 2 / numberOfOscillations);
 
-    // It's important to ensure that all voices have the same height, otherwise the separator will move and it will look bad
-    const cardElms = Array.from(container.querySelectorAll<HTMLDivElement>(".card"));
-    cardElms.forEach(cardElm => {
-        const voiceElms = Array.from(cardElm.querySelectorAll<HTMLDivElement>(".voice"));
-        voiceElms.forEach(voiceElm => voiceElm.style.height = "auto");
-        const voiceHeight = Math.max(...voiceElms.map(voiceElm => voiceElm.getBoundingClientRect().height));
-        voiceElms.forEach(voiceElm => voiceElm.style.height = voiceHeight + "px");
+const timingFunctions: {[name: string]: (x: number) => number} = {
+    instant: x => x > 0 ? 1 : 0,
+    linear: x => x,
+    ease: bezier(0.25, 0.1, 0.25, 1),
+    easeIn: bezier(0.42, 0, 1, 1),
+    easeOut: bezier(0, 0, 0.58, 1),
+    easeInOut: bezier(0.42, 0, 0.58, 1)
+};
+const postprocessingFunctions: {[name: string]: (timedProgress: number, linearProgress: number) => number} = {
+    none: x => x,
+    oscillate4: oscillateFunctionGenerator(4)
+};
+interface Timer {
+    name: string,
+    fromReference: string,
+    fromOffset: number,
+    toReference: string,
+    toOffset: number,
+    timingFunction: (x: number) => number,
+    lastValue?: number
+};
+function parseTimers(timersString: string): Array<Timer> {
+    return timersString.split(",").filter(s => s).map(timerString => {
+        let [name, fromReference, fromOffset, toReference, toOffset, forwardTimingFunctionName, reverseTimingFunctionName, postprocessingFunctionName] = timerString.trim().split(" ");
+
+        if(!forwardTimingFunctionName) {
+            forwardTimingFunctionName = "linear";
+        }
+        if(!timingFunctions[forwardTimingFunctionName]) {
+            throw new Error("Attempt to use non-existent timing function " + forwardTimingFunctionName);
+        }
+
+        if(reverseTimingFunctionName == "none") {
+            reverseTimingFunctionName = null;
+        }
+        if(reverseTimingFunctionName && !timingFunctions[reverseTimingFunctionName]) {
+            throw new Error("Attempt to use non-existent reverse timing function " + reverseTimingFunctionName);
+        }
+
+        if(!postprocessingFunctionName) {
+            postprocessingFunctionName = "none";
+        }
+        if(!postprocessingFunctions[postprocessingFunctionName]) {
+            throw new Error("Attempt to use non-existent postprocessing function " + postprocessingFunctionName);
+        }
+
+        const forwardTimingFunction = timingFunctions[forwardTimingFunctionName];
+        const reverseTimingFunction = reverseTimingFunctionName ? timingFunctions[reverseTimingFunctionName] : null;
+        const postprocessingFunction = postprocessingFunctions[postprocessingFunctionName];
+
+        const timingFunction = (linearProgress) => {
+            const timedProgress = reverseTimingFunction ?
+                (
+                    linearProgress < 0.5 ?
+                    forwardTimingFunction(unlerp(linearProgress, 0, 0.5)) :
+                    lerp(reverseTimingFunction(unlerp(linearProgress, 0.5, 1)), 1, 0)
+                ) :
+                forwardTimingFunction(linearProgress);
+        
+            const postprocessed = postprocessingFunction ? postprocessingFunction(timedProgress, linearProgress) : timedProgress;
+        
+            return postprocessed;
+        }
+
+        return {
+            name,
+            fromReference,
+            fromOffset: parseFloat(fromOffset),
+            toReference,
+            toOffset: parseFloat(toOffset),
+            timingFunction
+        };
     });
+}
 
-    // For the separator resizing animation, each separator also needs to know the size of the previous separator
-    let previousSeparatorWidths = [];
-    for(let i = 0; i < cardElms.length; i++) {
-        const cardElm = cardElms[i];
+function getTimerValue(timer: Timer, time: number, referenceValues: {[name: string]: number}): number {
+    const from = referenceValues[timer.fromReference] + timer.fromOffset;
+    const to = referenceValues[timer.toReference] + timer.toOffset;
+    const linearProgress = clamp(unlerp(time, from, to));
+    return timer.timingFunction(linearProgress);
+}
 
-        const separators = Array.from(cardElm.querySelectorAll<HTMLDivElement>(".voiceSeparator"));
+function layoutLyrics() {
+    let previousVoiceWidths = [];
+    for(let card of renderedLyrics) {
+        // It's important to ensure that all voices have the same height, otherwise the separator will move and it will look bad
+        const voiceElms = card.voices.map(v => v.voiceElm);
+        const voiceContentsElms = card.voices.map(v => v.contentsElm);
+        voiceContentsElms.forEach(voiceElm => voiceElm.style.height = "auto");
+        const voiceHeight = Math.max(...voiceContentsElms.map(voiceElm => voiceElm.getBoundingClientRect().height));
+        voiceContentsElms.forEach(voiceElm => voiceElm.style.height = voiceHeight + "px");
 
-        separators.forEach((sepElm, index) => {
-            sepElm['previousWidth'] = previousSeparatorWidths[index];
-            sepElm['intendedWidth'] = (sepElm['previousVoice'].getBoundingClientRect().width + sepElm['nextVoice'].getBoundingClientRect().width) / 2;
-            sepElm.style.transform = "scaleX(" + sepElm['intendedWidth'] + ")"; // This prevents inactive separators from causing layout issues if the browser is resized
+        // Here's some extra data that's used for separator sizing (e.g. etoile et toi)
+        const voiceWidths = voiceContentsElms.map(contentsElm => contentsElm.getBoundingClientRect().width);
+        voiceElms.forEach((voiceElm, i) => {
+            voiceElm.style.setProperty("--voice-width", "" + voiceWidths[i]);
+            voiceElm.style.setProperty("--next-voice-width", "" + (voiceWidths[i + 1] || 0));
+            voiceElm.style.setProperty("--previous-card-voice-width", "" + (previousVoiceWidths[i] || 0));
+            voiceElm.style.setProperty("--previous-card-next-voice-width", "" + (previousVoiceWidths[i + 1] || 0));
         });
-
-        previousSeparatorWidths = separators.map(sepElm => sepElm['intendedWidth']);
+        previousVoiceWidths = voiceWidths;
     }
 }
 
@@ -296,54 +419,29 @@ function redraw(now) {
     }
     lastDraw = now;
 
-    container.style.setProperty("--current-time", "" + currentTime * 1000);
-
-    // Set card opacity
-    let activeCards: Array<HTMLDivElement> = [];
-    for(let i = 0; i < cardElms.length; i++) {
-        const cardElm = cardElms[i];
-        if(cardElm['card'].timecode > currentTime + cardTransitionTime) {
-            //cardElm.style.opacity = 0;
-            continue;
-        }
-        if(cardElm['card'].timecode < currentTime) {
-            //cardElm.style.opacity = 1;
-            activeCards = [cardElm];
-            continue;
-        }
-        activeCards = [cardElm];
-        if(i > 0) {
-            activeCards.push(cardElms[i-1]);
-        }
-        const progress = (currentTime - cardElm['card'].timecode) / cardTransitionTime + 1;
-        //cardElm.style.opacity = progress;
-    }
-
-    // Animate words
-    for(let i = 0; i < activeCards.length; i++) {
-        const cardElm = activeCards[i];
-        const contentsElm = cardElm.children[0];
-        const separators = <Array<HTMLDivElement>> Array.from(contentsElm.children).filter((_, index) => (index % 2));
-        for(let i = 0; i < separators.length; i++) {
-            const sepElm = separators[i];
-            if(sepElm['previousWidth']) {
-                const progress = Math.max(0, Math.min(1, (currentTime - cardElm['card'].timecode) / separatorTransitionTime));
-                sepElm.style.transform = "scaleX(" + lerp(sepElm['previousWidth'], sepElm['intendedWidth'], easeInOutQuad(progress)) + ")";
-            } else {
-                sepElm.style.transform = "scaleX(" + sepElm['intendedWidth'] + ")";
+    for(let cardIndex = 0; cardIndex < renderedLyrics.length; cardIndex++) {
+        const card = renderedLyrics[cardIndex];
+        const nextCard = renderedLyrics[cardIndex + 1];
+        const cardEnd = (nextCard || card).cardAst.timecode;
+        card.cardTimers.forEach(timer => {
+            const value = getTimerValue(timer, currentTime, { start: card.cardAst.timecode, end: cardEnd });
+            if(value != timer.lastValue) {
+                card.cardElm.style.setProperty(timer.name, "" + value);
+                timer.lastValue = value;
             }
-        }
-        const voices = Array.from(contentsElm.children).filter((_, index) => !(index % 2));
-        for(let i = 0; i < voices.length; i++) {
-            const voiceElm = voices[i];
-            const words = <Array<HTMLDivElement>> Array.from(voiceElm.children);
-            const movementDirection = i ? -1 : 1;
-            for(let i = 0; i < words.length; i++) {
-                const wordElm = words[i];
-                const word = wordElm['word'];
-                const progress = Math.max(0, Math.min(1, (currentTime - word.timecode) / textMovementTime));
-                wordElm.style.opacity = "" + progress;
-                wordElm.style.transform = "translateY(" + ((1-easeOutQuad(progress)) * movementDirection * textMovementDistance) + "rem)";
+        });
+
+        for(let voice of card.voices) {
+            for(let wordIndex = 0; wordIndex < voice.words.length; wordIndex++) {
+                const word = voice.words[wordIndex];
+                const nextWord = voice.words[wordIndex + 1];
+                word.wordTimers.forEach(timer => {
+                    const value = getTimerValue(timer, currentTime, { start: word.wordAst.timecode, end: nextWord ? nextWord.wordAst.timecode : cardEnd });
+                    if(value != timer.lastValue) {
+                        word.wordElm.style.setProperty(timer.name, "" + value);
+                        timer.lastValue = value;
+                    }
+                });
             }
         }
     }

@@ -8,6 +8,7 @@
   "license": "UNLICENSED",
   "dependencies": {
     "@types/youtube": "0.0.38",
+    "bezier-easing": "^2.1.0",
     "handlebars": "^4.1.2",
     "parcel-bundler": "^1.12.3",
     "parcel-plugin-handlebars2": "^0.5.1",

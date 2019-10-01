@@ -1,53 +1,94 @@
 @import url('https://fonts.googleapis.com/css?family=Rouge+Script&display=block');
 
-.lyricsContainer.etoile-et-toi-\(edition-le-blanc\) {
-    --text-movement-distance: 0.4em;
-    --text-movement-time: 1000;
-    --card-transition-time: 500;
-    --separator-transition-time: 2000;
-}
-
 .start {
     font-family: 'Rouge Script', cursive;
     font-size: 1rem;
 }
 
-.lyricsContainer {
+.lyricsContainer.etoile-et-toi-\(edition-le-blanc\) {
+    $text-movement-distance: 0.4em;
+    $text-movement-time: 1;
+    $card-transition-time: 0.5;
+    $separator-transition-time: 2;
+
     font-family: 'Rouge Script', cursive;
     font-size: 1rem;
-}
 
-.lyricsContainer .card {
-    background: black;
-    opacity: calc((var(--current-time) - var(--card-start-time) + var(--card-transition-time))/var(--card-transition-time));
-}
+    .card {
+        background: black;
+        opacity: var(--fade-in);
 
-.lyricsContainer .card .contents {
-    position: absolute;
-    top: 50%;
-    left: 0;
-    right: 0;
-    transform: translateY(-50%);
-    text-align: center;
-}
+        --card-timers: --fade-in start -#{$card-transition-time} start 0 linear, --separator-glide start 0 start #{$separator-transition-time} easeInOut;
+    }
 
-.lyricsContainer .card .voiceSeparator {
-    margin: 0.4rem auto;
-    height: 1px;
-    width: 1px;
-    margin: auto;
-    background: white;
-}
+    .card .contents {
+        position: absolute;
+        top: 50%;
+        left: 0;
+        right: 0;
+        transform: translateY(-50%);
+        text-align: center;
+    }
 
-.lyricsContainer .card .voice {
-    display: inline-block;
-    overflow: hidden;
-    padding: 0.1rem;
-    vertical-align: middle;
-}
+    .card .voiceSeparator {
+        margin: 0.4rem auto;
+        height: 1px;
+        width: 1px;
+        margin: auto;
+        background: white;
+    }
 
-.lyricsContainer .card .voice .word {
-    display: inline-block;
+    .card .voice {
+        display: block;
+        overflow: visible;
+        padding: 0;
+
+        --movement-direction: -1;
+
+        &:first-child {
+            --movement-direction: 1;
+        }
+
+        .voiceContents {
+            display: inline-block;
+
+            overflow: hidden;
+            padding: 0.1rem;
+
+            .word {
+                --word-timers: --fade-in start 0 start #{$text-movement-time} linear, --lower-in start 0 start #{$text-movement-time} easeOut;
+                
+                display: inline-block;
+                vertical-align: middle;
+        
+                opacity: var(--fade-in);
+                transform: translateY(calc((1 - var(--lower-in)) * var(--movement-direction) * #{$text-movement-distance}));
+            }
+        }
+
+        &::after {
+            display: block;
+            content: ' ';
+
+            margin: 0.4rem auto;
+            height: 1px;
+            width: 1px;
+            margin: auto;
+            background: white;
+
+            --separator-width: calc((var(--voice-width) + var(--next-voice-width)) / 2);
+            --previous-separator-width: calc((var(--previous-card-voice-width) + var(--previous-card-next-voice-width)) / 2);
+
+            --current-width: calc(var(--previous-separator-width) + (var(--separator-width) - var(--previous-separator-width)) * var(--separator-glide));
+
+            transform: scaleX(var(--current-width));
+        }
+
+        &:last-child::after {
+            display: none;
+            content: none;
+        }
+    }
 }
 
 .youtubeContainer {
