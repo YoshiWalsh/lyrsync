@@ -1,5 +1,11 @@
 @import url('https://fonts.googleapis.com/css?family=Rouge+Script&display=block');
 
+.lyricsContainer.etoile-et-toi-\(edition-le-blanc\) {
+    --text-movement-distance: 0.4em;
+    --text-movement-time: 1000;
+    --card-transition-time: 500;
+    --separator-transition-time: 2000;
+}
 
 .start {
     font-family: 'Rouge Script', cursive;
@@ -13,6 +19,7 @@
 
 .lyricsContainer .card {
     background: black;
+    opacity: calc((var(--current-time) - var(--card-start-time) + var(--card-transition-time))/var(--card-transition-time));
 }
 
 .lyricsContainer .card .contents {

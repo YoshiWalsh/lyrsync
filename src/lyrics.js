@@ -206,13 +206,13 @@ function parseLyrics(lyricsFile) {
 }
 
 const cardElms = [];
+const container = document.querySelector(".lyricsContainer");
 function renderLyrics(lyricsAst) {
-    const container = document.querySelector(".lyricsContainer");
-
     lyricsAst.cards.forEach(card => {
         const cardElm = document.createElement("div");
         cardElm.card = card;
         cardElm.classList.add("card");
+        cardElm.style.setProperty("--card-start-time", card.timecode * 1000);
         const contentsElm = document.createElement("div");
         contentsElm.classList.add("contents");
         let firstVoice = true;
@@ -295,16 +295,18 @@ function redraw(now) {
     }
     lastDraw = now;
 
+    container.style.setProperty("--current-time", currentTime * 1000);
+
     // Set card opacity
     let activeCards = [];
     for(let i = 0; i < cardElms.length; i++) {
         const cardElm = cardElms[i];
         if(cardElm.card.timecode > currentTime + cardTransitionTime) {
-            cardElm.style.opacity = 0;
+            //cardElm.style.opacity = 0;
             continue;
         }
         if(cardElm.card.timecode < currentTime) {
-            cardElm.style.opacity = 1;
+            //cardElm.style.opacity = 1;
             activeCards = [cardElm];
             continue;
         }
@@ -313,7 +315,7 @@ function redraw(now) {
             activeCards.push(cardElms[i-1]);
         }
         const progress = (currentTime - cardElm.card.timecode) / cardTransitionTime + 1;
-        cardElm.style.opacity = progress;
+        //cardElm.style.opacity = progress;
     }
 
     // Animate words
