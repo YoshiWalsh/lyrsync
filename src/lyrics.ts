@@ -1,9 +1,6 @@
 import bezier from 'bezier-easing';
 
 let initialised = false;
-const ytReady = new Promise((resolve) => {
-    window['onYouTubeIframeAPIReady'] = () => { resolve(); };
-})
 
 const lerp = (x: number, min: number, max: number) => min*(1-x)+max*x;
 const unlerp = (x: number, min: number, max: number) => (x-min) / (max-min);
@@ -12,7 +9,7 @@ const clamp = (x: number, min?: number, max?: number) => Math.min(Math.max(x, mi
 let lyricsAst: AST;
 let renderedLyrics: Array<RenderedCard>;
 function init() {
-    const youtubePromise = initialiseYoutubePlayer();
+    const playerPromise = initialisePlayer();
 
     const lyricsFile = (document.querySelector<HTMLAnchorElement>("link.lyricsFile")).href;
 
@@ -26,13 +23,13 @@ function init() {
             renderedLyrics = renderLyrics();
             console.log(renderedLyrics);
             layoutLyrics();
-            youtubePromise.then(player => {
+            playerPromise.then(player => {
                 initialised = true;
                 const start = document.querySelector<HTMLDivElement>(".start");
                 start.style.display = "block";
                 start.addEventListener("click", () => {
                     start.style.display = "none";
-                    player.playVideo();
+                    player.play();
                     document.querySelector<HTMLDivElement>(".container").style.opacity = '1';
                 })
             });
@@ -53,38 +50,22 @@ window.addEventListener("resize", () => {
 let currentTime = 0;
 let playbackSpeed = 0;
 let playing = false;
-function initialiseYoutubePlayer() {
-    return new Promise<YT.Player>((resolve) => {
-        ytReady.then(() => {
-            const youtubePlayer = document.querySelector<HTMLDivElement>(".youtubeContainer .player");
-            const youtubeId = youtubePlayer.dataset.youtubeId;
-            const player = new YT.Player(youtubePlayer, {
-                height: '100%',
-                width: '100%',
-                videoId: youtubeId,
-                playerVars: {
-                    modestbranding: 1
-                },
-                events: {
-                    'onReady': () => {
-                        window.setInterval(() => {
-                            playbackSpeed = player.getPlaybackRate();
-                            currentTime = player.getCurrentTime();
-                            playing = player.getPlayerState() == 1;
-                        }, 1000);
-                        resolve(player);
-                    },
-                    'onStateChange': state => {
-                        playbackSpeed = player.getPlaybackRate();
-                        currentTime = player.getCurrentTime();
-                        playing = player.getPlayerState() == 1;
-                        if(state.data == 0) {
-                            player.seekTo(0, true);
-                            player.playVideo();
-                        }
-                    }
+function initialisePlayer() {
+    return new Promise<any>((resolve) => {
+        const playerElement = document.querySelector<HTMLDivElement>(".playerContainer .player");
+        const mediaUrl = playerElement.dataset.mediaUrl;
+        const player = Popcorn.smart(playerElement, mediaUrl);
+
+        player.on("canplay", () => {
+            window.setInterval(() => {
+                playbackSpeed = player.playbackRate();
+                if(playbackSpeed === undefined) {
+                    playbackSpeed = 1;
                 }
-            });
+                currentTime = player.currentTime();
+                playing = !player.paused();
+            }, 1000);
+            resolve(player);
         });
     });
 }
