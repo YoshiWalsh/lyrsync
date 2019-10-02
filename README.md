@@ -82,7 +82,8 @@ yarn dev
 
 ## Todo
 
- - Use [Popcorn.js](https://github.com/menismu/popcorn-js) instead of Youtube API, will allow media from other sources
+ - Add custom controls (play/pause, volume, seek, fullscreen)
  - Add support for offset ID Tag
  - Add support for cue tags, which will allow triggering extra animations/effects at arbitrary times
- - Add some more songs!
+ - Add more songs
+ - Clean parsing code (it's currently a mess)
