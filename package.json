@@ -12,7 +12,8 @@
     "handlebars": "^4.1.2",
     "parcel-bundler": "^1.12.3",
     "parcel-plugin-handlebars2": "^0.5.1",
-    "sass": "^1.20.3"
+    "sass": "^1.20.3",
+    "popcorn-js": "menismu/popcorn-js#master"
   },
   "scripts": {
     "dev": "parcel src/index.hbs src/songs/**/*.hbs",
