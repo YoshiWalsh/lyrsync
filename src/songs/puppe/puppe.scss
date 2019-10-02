@@ -1,0 +1,105 @@
+@import url('https://fonts.googleapis.com/css?family=Patrick+Hand&display=block');
+@import url('https://fonts.googleapis.com/css?family=Mansalva&display=block');
+
+.start {
+    font-family: 'Patrick Hand', sans-serif;
+    font-size: 1rem;
+}
+
+.lyricsContainer.puppe {
+    $text-movement-distance: 0.4em;
+    $text-movement-time: 1;
+    $angry-card-early-appearance: 0.2;
+    $angry-text-movement-time: 0.15;
+    $angry-text-movement-distance: 70vh;
+    $angry-text-shake-time: 0.2;
+    $angry-text-shake-distance: 0.05rem;
+    $card-transition-time: 0.5;
+    $separator-transition-time: 2;
+
+    overflow: hidden;
+
+    font-family: 'Patrick Hand', sans-serif;
+    font-size: 1rem;
+
+    .card {
+        --card-timers: --fade-in start -#{$card-transition-time} start 0 linear;
+
+        background: black;
+        opacity: var(--fade-in);
+
+        .contents {
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            transform: translateY(-50%);
+            text-align: center;
+        }
+
+        .voice {
+            display: block;
+            overflow: visible;
+            padding: 0;
+            font-size: 0;
+
+            --movement-direction: -1;
+
+            &:first-child {
+                --movement-direction: 1;
+            }
+
+            .voiceContents {
+                display: inline-block;
+
+                overflow: hidden;
+                padding: 0.1rem;
+                margin: 1em 0;
+                font-size: 1rem;
+
+                .word {
+                    --word-timers: --fade-in start 0 start #{$text-movement-time} linear, --grow-in start 0 start #{$text-movement-time} easeOut;
+                    
+                    display: inline-block;
+                    vertical-align: middle;
+
+                    backface-visibility: hidden;
+            
+                    opacity: var(--fade-in);
+                    transform-origin: 50% 50%;
+                    transform: scale(calc(0.9 + var(--grow-in) * 0.1));
+                }
+            }
+        }
+
+        &.angry {
+            --card-timers: --fade-in start -#{$angry-card-early-appearance} start 0 instant;
+
+            background: #BB0000;
+            font-family: 'Mansalva', sans-serif;
+            font-variant: small-caps;
+
+            .voice .voiceContents {
+                overflow: visible;
+                padding: 0;
+                margin: -0.2em;
+
+                .word {
+                    --word-timers: --fly-in start -#{$angry-text-movement-time} start 0 linear, --shake start #{$angry-text-shake-time} start 0 easeIn none oscillate1;
+
+                    transform: translateY(calc((1 - var(--fly-in)) * -1 * var(--movement-direction) * #{$angry-text-movement-distance} + #{$angry-text-shake-distance} * var(--shake) * -1 * var(--movement-direction)));
+                }
+            }
+        }
+
+        &.big {
+            .voice .voiceContents {
+                font-size: 1.5rem;
+            }
+        }
+    }
+}
+
+.playerContainer {
+    height: 100px;
+}

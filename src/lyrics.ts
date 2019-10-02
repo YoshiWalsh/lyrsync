@@ -30,6 +30,7 @@ function init() {
                 start.addEventListener("click", () => {
                     start.style.display = "none";
                     player.play();
+                    window['player'] = player; // useful for debugging
                     document.querySelector<HTMLDivElement>(".container").style.opacity = '1';
                 })
             });
@@ -76,6 +77,7 @@ interface AST {
 interface ASTCard {
     timecode: number;
     voices: {[voice: string]: Array<ASTWord>};
+    classes: Array<string>;
 }
 interface ASTWord {
     timecode: number;
@@ -89,7 +91,8 @@ function parseLyrics(lyricsFile): AST {
     let isEscaped = false;
     let currentCard = {
         timecode: null,
-        voices: {}
+        voices: {},
+        classes: []
     };
     let currentWord = {
         timecode: null,
@@ -141,7 +144,8 @@ function parseLyrics(lyricsFile): AST {
                         }
                         currentCard = {
                             timecode,
-                            voices: []
+                            voices: [],
+                            classes: []
                         };
                     }
                 } else {
@@ -163,6 +167,9 @@ function parseLyrics(lyricsFile): AST {
                                 if(!currentCard.voices[currentVoice]) {
                                     currentCard.voices[currentVoice] = [];
                                 }
+                                break;
+                            case "class":
+                                currentCard.classes.push(tagValue);
                                 break;
                             default:
                                 // Unrecognised tag
@@ -218,6 +225,9 @@ function renderLyrics() {
         const cardElm = document.createElement("div");
         cardElm.classList.add("card");
         cardElm.style.setProperty("--card-start-time", "" + cardAst.timecode * 1000);
+        for(const currentClass of cardAst.classes) {
+            cardElm.classList.add(currentClass);
+        }
 
         const contentsElm = document.createElement("div");
         contentsElm.classList.add("contents");
@@ -279,7 +289,7 @@ function renderLyrics() {
     });
 }
 
-const oscillateFunctionGenerator = (numberOfOscillations) => (magnitude, t) => Math.sin(t * Math.PI * 2 / numberOfOscillations);
+const oscillateFunctionGenerator = (numberOfOscillations) => (magnitude, t) => Math.sin(t * Math.PI * 2 * numberOfOscillations);
 
 const timingFunctions: {[name: string]: (x: number) => number} = {
     instant: x => x > 0 ? 1 : 0,
@@ -287,11 +297,13 @@ const timingFunctions: {[name: string]: (x: number) => number} = {
     ease: bezier(0.25, 0.1, 0.25, 1),
     easeIn: bezier(0.42, 0, 1, 1),
     easeOut: bezier(0, 0, 0.58, 1),
-    easeInOut: bezier(0.42, 0, 0.58, 1)
+    easeInOut: bezier(0.42, 0, 0.58, 1),
 };
 const postprocessingFunctions: {[name: string]: (timedProgress: number, linearProgress: number) => number} = {
     none: x => x,
-    oscillate4: oscillateFunctionGenerator(4)
+    oscillate1: oscillateFunctionGenerator(1),
+    oscillate2: oscillateFunctionGenerator(2),
+    oscillate4: oscillateFunctionGenerator(4),
 };
 interface Timer {
     name: string,
