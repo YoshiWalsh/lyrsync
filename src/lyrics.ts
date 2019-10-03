@@ -57,7 +57,7 @@ function initialisePlayer() {
 
         player.on("canplay", () => {
             function update() {
-                currentTime = player.currentTime();
+                currentTime = player.currentTime() + lyricsAst.metadata.offset;
                 window.requestAnimationFrame(update);
             }
             window.requestAnimationFrame(update);
@@ -67,7 +67,11 @@ function initialisePlayer() {
 }
 
 interface AST {
+    metadata: ASTMetadata;
     cards: Array<ASTCard>;
+}
+interface ASTMetadata {
+    offset: number;
 }
 interface ASTCard {
     timecode: number;
@@ -82,6 +86,9 @@ const timecodeRegex = /^(\d{2})\:(\d{2})\.(\d{2})$/;
 const tagRegex = /^([a-z]+)\:(.*)$/;
 function parseLyrics(lyricsFile): AST {
     const cards: Array<ASTCard> = [];
+    const metadata = {
+        offset: 0
+    };
 
     let isEscaped = false;
     let currentCard = {
@@ -149,6 +156,8 @@ function parseLyrics(lyricsFile): AST {
 
                     if(isCardTag) {
                         switch(tagType) {
+                            case "offset":
+                                metadata.offset = parseInt(tagValue, 10) / 1000;
                             case "voice":
                                 // Start new word and change voice
                                 if(currentWord.timecode !== null && currentWord.contents) {
