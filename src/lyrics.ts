@@ -21,6 +21,7 @@ function init() {
         response.text().then(responseText => {
             lyricsAst = parseLyrics(responseText);
             renderedLyrics = renderLyrics();
+            attachTimers(renderedLyrics);
             console.log(renderedLyrics);
             layoutLyrics();
             playerPromise.then(player => {
@@ -201,7 +202,8 @@ function parseLyrics(lyricsFile): AST {
     cards.sort((a, b) => a.timecode - b.timecode);
 
     return {
-        cards
+        metadata,
+        cards,
     };
 }
 
@@ -210,7 +212,7 @@ interface RenderedCard {
     cardElm: HTMLDivElement,
     contentsElm: HTMLDivElement,
     voices: Array<RenderedVoice>,
-    cardTimers: Array<Timer>
+    cardTimers?: Array<Timer>
 }
 interface RenderedVoice {
     name: string,
@@ -221,7 +223,7 @@ interface RenderedVoice {
 interface RenderedWord {
     wordAst: ASTWord,
     wordElm: HTMLSpanElement,
-    wordTimers: Array<Timer>
+    wordTimers?: Array<Timer>
 }
 const container = document.querySelector<HTMLDivElement>(".lyricsContainer");
 function renderLyrics() {
@@ -263,12 +265,9 @@ function renderLyrics() {
                     .replace(/\n/g, "<br />");
                 voiceContentsElm.appendChild(wordElm);
 
-                const wordTimers = parseTimers(getComputedStyle(wordElm).getPropertyValue("--word-timers"));
-
                 return {
                     wordAst,
                     wordElm,
-                    wordTimers
                 };
             });
 
@@ -280,14 +279,11 @@ function renderLyrics() {
             });
         }
 
-        const cardTimers = parseTimers(getComputedStyle(cardElm).getPropertyValue("--card-timers"));
-
         return {
             cardAst,
             cardElm,
             contentsElm,
             voices,
-            cardTimers
         };
     });
 }
@@ -376,6 +372,18 @@ function getTimerValue(timer: Timer, time: number, referenceValues: {[name: stri
     const to = referenceValues[timer.toReference] + timer.toOffset;
     const linearProgress = clamp(unlerp(time, from, to));
     return timer.timingFunction(linearProgress);
+}
+
+function attachTimers(renderedCards: Array<RenderedCard>): void {
+    for(let card of renderedCards) {
+        card.cardTimers = parseTimers(getComputedStyle(card.cardElm).getPropertyValue("--card-timers"));
+
+        for(let voice of card.voices) {
+            for(let word of voice.words) {
+                word.wordTimers = parseTimers(getComputedStyle(word.wordElm).getPropertyValue("--word-timers"));
+            }
+        }
+    }
 }
 
 function layoutLyrics() {
