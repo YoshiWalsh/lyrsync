@@ -224,7 +224,6 @@ function renderLyrics() {
     return lyricsAst.cards.map<RenderedCard>(cardAst => {
         const cardElm = document.createElement("div");
         cardElm.classList.add("card");
-        cardElm.style.setProperty("--card-start-time", "" + cardAst.timecode * 1000);
         for(const currentClass of cardAst.classes) {
             cardElm.classList.add(currentClass);
         }
