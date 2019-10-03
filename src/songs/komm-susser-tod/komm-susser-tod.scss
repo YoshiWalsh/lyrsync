@@ -1,0 +1,145 @@
+@import url('https://fonts.googleapis.com/css?family=Kaushan+Script&display=block');
+
+.start {
+    font-family: 'Kaushan Script', cursive;
+    font-size: 1rem;
+}
+
+.lyricsContainer.komm-susser-tod {
+    $card-transition-time: 0.5;
+
+    $text-fade-time: 0.5;
+
+    $text-disappearing-fade-in-time: 0.5;
+    $text-disappearing-fade-out-time: 0.5;
+
+    $text-tumble-fade-in-time: 0.1;
+    $text-tumble-delay: 0.1;
+    $text-tumble-time: 5;
+    $text-tumble-distance: 80vh;
+    $text-tumble-rotations: 5;
+
+    overflow: hidden;
+
+    font-family: 'Kaushan Script', cursive;
+    font-size: 1;
+
+    .card {
+        --card-timers: --fade-in start -#{$card-transition-time} start 0 linear;
+
+        background: black;
+        opacity: var(--fade-in);
+
+        .contents {
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            transform: translateY(-50%);
+            text-align: center;
+        }
+
+        .voice {
+            display: block;
+            overflow: visible;
+            padding: 0;
+            font-size: 0;
+
+            --movement-direction: -1;
+
+            &:first-child {
+                --movement-direction: 1;
+            }
+
+            .voiceContents {
+                display: inline-block;
+
+                overflow: visible;
+                padding: 0.1rem;
+                margin: 1em 0;
+                font-size: 1.2rem;
+
+                .word {
+                    --word-timers: --fade-in start -#{$text-fade-time} start 0 linear, --progress start 0 end 0 linear;
+
+                    opacity: var(--fade-in);
+                    display: inline-block;
+                    vertical-align: middle;
+
+                    background: linear-gradient(to right, #FFF, #FFF calc(var(--progress) * 100%), #AAA calc(var(--progress) * 100% + 20%), #AAA);
+                    background-clip: text;
+                    color: transparent;
+                    -webkit-background-clip: text;
+                    -webkit-text-fill-color: transparent;
+
+                    /*
+                    The font might extent slightly beyond the content box. This is a problem because the background only covers the border box, which by
+                    default is the same as the content box, so the edge of the text gets trimmed. Putting some right padding extends the border box and the background.
+                    */
+                    padding-right: 8px;
+                }
+
+                .word:last-child {
+                    --word-timers: --fade-in start -#{$text-fade-time} start 0 linear, --progress start 0 end -0.2 linear;
+                }
+            }
+        }
+
+        &.disappearing {
+            .voice .voiceContents {
+                .word {
+                    --word-timers: --fade-in start -#{$text-disappearing-fade-in-time} start 0 linear, --fade-out end 0 end #{$text-disappearing-fade-out-time} linear;
+
+                    background: none;
+                    background-clip: unset;
+                    color: white;
+                    -webkit-text-fill-color: unset;
+
+                    opacity: calc(var(--fade-in) - var(--fade-out));
+                }
+            }
+        }
+
+        &.tumbling {
+            .voice .voiceContents {
+                overflow: visible;
+
+                .word {
+                    --word-timers: --fade-in start -#{$text-tumble-fade-in-time} start 0 easeOut, --fall-out start #{$text-tumble-delay} start #{$text-tumble-delay + $text-tumble-time} easeIn;
+
+                    background: none;
+                    background-clip: unset;
+                    color: white;
+                    -webkit-text-fill-color: unset;
+
+                    opacity: var(--fade-in);
+
+                    --axis-x: 1;
+                    --axis-y: 2;
+                    --axis-z: -1;
+
+                    &:nth-child(3n + 1) {
+                        --axis-x: 0.5;
+                        --axis-y: 2.5;
+                        --axiz-z: -3;
+                    }
+
+                    &:nth-child(3n + 2) {
+                        --axis-x: 1.2;
+                        --axis-y: 3;
+                        --axis-z: 1;
+                    }
+
+                    backface-visibility: visible;
+
+                    transform-origin: 50% 50%;
+                    transform: translateY(calc(var(--fall-out) * #{$text-tumble-distance})) rotate3d(var(--axis-x), var(--axis-y), var(--axis-z), calc(var(--fall-out) * #{$text-tumble-rotations}turn));
+                }
+            }
+        }
+    }
+}
+
+.playerContainer {
+    height: 100px;
+}
