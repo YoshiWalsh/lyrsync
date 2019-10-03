@@ -49,8 +49,6 @@ window.addEventListener("resize", () => {
 
 
 let currentTime = 0;
-let playbackSpeed = 0;
-let playing = false;
 function initialisePlayer() {
     return new Promise<any>((resolve) => {
         const playerElement = document.querySelector<HTMLDivElement>(".playerContainer .player");
@@ -58,14 +56,11 @@ function initialisePlayer() {
         const player = Popcorn.smart(playerElement, mediaUrl);
 
         player.on("canplay", () => {
-            window.setInterval(() => {
-                playbackSpeed = player.playbackRate();
-                if(playbackSpeed === undefined) {
-                    playbackSpeed = 1;
-                }
+            function update() {
                 currentTime = player.currentTime();
-                playing = !player.paused();
-            }, 1000);
+                window.requestAnimationFrame(update);
+            }
+            window.requestAnimationFrame(update);
             resolve(player);
         });
     });
@@ -396,20 +391,11 @@ function layoutLyrics() {
     }
 }
 
-let lastDraw = null;
 function redraw(now) {
     if(!initialised) {
         window.requestAnimationFrame(redraw);
         return;
     }
-
-    if(lastDraw) {
-        const delta = now - lastDraw;
-        if(playing) {
-            currentTime += delta * playbackSpeed / 1000;
-        }
-    }
-    lastDraw = now;
 
     for(let cardIndex = 0; cardIndex < renderedLyrics.length; cardIndex++) {
         const card = renderedLyrics[cardIndex];
