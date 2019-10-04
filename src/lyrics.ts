@@ -7,7 +7,7 @@ const unlerp = (x: number, min: number, max: number) => (x-min) / (max-min);
 const clamp = (x: number, min?: number, max?: number) => Math.min(Math.max(x, min || 0), max || 1);
 
 let lyricsAst: AST;
-let renderedLyrics: Array<RenderedCard>;
+let renderedLyrics: RenderedLyrics;
 function init() {
     const playerPromise = initialisePlayer();
 
@@ -21,7 +21,6 @@ function init() {
         response.text().then(responseText => {
             lyricsAst = parseLyrics(responseText);
             renderedLyrics = renderLyrics();
-            attachTimers(renderedLyrics);
             layoutLyrics();
             playerPromise.then(player => {
                 initialised = true;
@@ -293,27 +292,32 @@ function parseLyrics(lyricsFile): AST {
     };
 }
 
+interface RenderedLyrics {
+    cards: Array<RenderedCard>;
+    cueTimers?: Array<Timer>;
+}
+
 interface RenderedCard {
-    cardAst: ASTCard,
-    cardElm: HTMLDivElement,
-    contentsElm: HTMLDivElement,
-    voices: Array<RenderedVoice>,
-    cardTimers?: Array<Timer>
+    cardAst: ASTCard;
+    cardElm: HTMLDivElement;
+    contentsElm: HTMLDivElement;
+    voices: Array<RenderedVoice>;
+    cardTimers?: Array<Timer>;
 }
 interface RenderedVoice {
-    name: string,
-    voiceElm: HTMLDivElement,
-    contentsElm: HTMLDivElement,
-    words: Array<RenderedWord>
+    name: string;
+    voiceElm: HTMLDivElement;
+    contentsElm: HTMLDivElement;
+    words: Array<RenderedWord>;
 }
 interface RenderedWord {
-    wordAst: ASTWord,
-    wordElm: HTMLSpanElement,
-    wordTimers?: Array<Timer>
+    wordAst: ASTWord;
+    wordElm: HTMLSpanElement;
+    wordTimers?: Array<Timer>;
 }
 const container = document.querySelector<HTMLDivElement>(".lyricsContainer");
-function renderLyrics() {
-    return lyricsAst.cards.map<RenderedCard>(cardAst => {
+function renderLyrics(): RenderedLyrics {
+    const cards = lyricsAst.cards.map<RenderedCard>(cardAst => {
         const cardElm = document.createElement("div");
         cardElm.classList.add("card");
         for(const currentClass of cardAst.classes) {
@@ -375,12 +379,30 @@ function renderLyrics() {
             voices,
         };
     });
+
+    // Attach timers
+    const cueTimers = parseTimers(getComputedStyle(container).getPropertyValue("--cue-timers"));
+    for(let card of cards) {
+        card.cardTimers = parseTimers(getComputedStyle(card.cardElm).getPropertyValue("--card-timers"));
+
+        for(let voice of card.voices) {
+            for(let word of voice.words) {
+                word.wordTimers = parseTimers(getComputedStyle(word.wordElm).getPropertyValue("--word-timers"));
+            }
+        }
+    }
+
+    return {
+        cards,
+        cueTimers,
+    };
 }
 
 const oscillateFunctionGenerator = (numberOfOscillations) => (magnitude, t) => Math.sin(t * Math.PI * 2 * numberOfOscillations);
 
 const timingFunctions: {[name: string]: (x: number) => number} = {
     instant: x => x > 0 ? 1 : 0,
+    instantOut: x => x < 1 ? 0 : 1,
     linear: x => x,
     ease: bezier(0.25, 0.1, 0.25, 1),
     easeIn: bezier(0.42, 0, 1, 1),
@@ -463,21 +485,10 @@ function getTimerValue(timer: Timer, time: number, referenceValues: {[name: stri
     return timer.timingFunction(linearProgress);
 }
 
-function attachTimers(renderedCards: Array<RenderedCard>): void {
-    for(let card of renderedCards) {
-        card.cardTimers = parseTimers(getComputedStyle(card.cardElm).getPropertyValue("--card-timers"));
-
-        for(let voice of card.voices) {
-            for(let word of voice.words) {
-                word.wordTimers = parseTimers(getComputedStyle(word.wordElm).getPropertyValue("--word-timers"));
-            }
-        }
-    }
-}
-
 function layoutLyrics() {
     let previousVoiceWidths = [];
-    for(let card of renderedLyrics) {
+
+    for(let card of renderedLyrics.cards) {
         // It's important to ensure that all voices have the same height, otherwise the separator will move and it will look bad
         const voiceElms = card.voices.map(v => v.voiceElm);
         const voiceContentsElms = card.voices.map(v => v.contentsElm);
@@ -503,9 +514,9 @@ function redraw(now) {
         return;
     }
 
-    for(let cardIndex = 0; cardIndex < renderedLyrics.length; cardIndex++) {
-        const card = renderedLyrics[cardIndex];
-        const nextCard = renderedLyrics[cardIndex + 1];
+    for(let cardIndex = 0; cardIndex < renderedLyrics.cards.length; cardIndex++) {
+        const card = renderedLyrics.cards[cardIndex];
+        const nextCard = renderedLyrics.cards[cardIndex + 1];
         const cardEnd = (nextCard || card).cardAst.timecode;
         card.cardTimers.forEach(timer => {
             const value = getTimerValue(timer, currentTime, { start: card.cardAst.timecode, end: cardEnd });
@@ -529,6 +540,35 @@ function redraw(now) {
             }
         }
     }
+
+    const cueReferences = {};
+    for(let cueName in lyricsAst.cues) {
+        const cues = lyricsAst.cues[cueName];
+
+        let firstUnstartedCueIndex = cues.findIndex(cue => cue.start >= currentTime);
+        if(firstUnstartedCueIndex === -1) {
+            firstUnstartedCueIndex = cues.length;
+        }
+        const firstUnstartedCue = cues[firstUnstartedCueIndex];
+        const lastStartedCue = cues[firstUnstartedCueIndex - 1];
+
+        const distanceToFirstUnstartedCue = firstUnstartedCue ? firstUnstartedCue.start - currentTime : Infinity;
+        const distanceToLastStartedCue = lastStartedCue ? currentTime - lastStartedCue.end : Infinity;
+
+        const referenceCue = distanceToFirstUnstartedCue < distanceToLastStartedCue ? firstUnstartedCue : lastStartedCue;
+
+        if(referenceCue) {
+            cueReferences[cueName + "." + "start"] = referenceCue.start;
+            cueReferences[cueName + "." + "end"] = referenceCue.end;
+        }
+    }
+    renderedLyrics.cueTimers.forEach(timer => {
+        const value = getTimerValue(timer, currentTime, cueReferences);
+        if(value != timer.lastValue) {
+            container.style.setProperty(timer.name, "" + value);
+            timer.lastValue = value;
+        }
+    });
 
     window.requestAnimationFrame(redraw);
 }
