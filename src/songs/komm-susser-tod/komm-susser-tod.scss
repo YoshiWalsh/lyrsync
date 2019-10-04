@@ -19,13 +19,20 @@
     $text-tumble-distance: 80vh;
     $text-tumble-rotations: 5;
 
+    $colour-fade-time: 2.5;
+    $colour-fade-intensity: 0.3;
+
     overflow: hidden;
 
     font-family: 'Kaushan Script', cursive;
     font-size: 1;
 
     .card {
-        --card-timers: --fade-in start -#{$card-transition-time} start 0 linear;
+        --card-timers: --fade-in start -#{$card-transition-time} start 0 linear, --colour-fade end -#{$colour-fade-time} end 0 linear;
+
+        --non-colour-fade: calc(1 - (var(--colour-fade) * #{$colour-fade-intensity}));
+        --bright-colour: rgb(calc(var(--non-colour-fade) * 255), calc(var(--non-colour-fade) * 255), 255);
+        --dim-colour: rgb(calc(var(--non-colour-fade) * 173), calc(var(--non-colour-fade) * 173), 173);
 
         background: black;
         opacity: var(--fade-in);
@@ -66,7 +73,7 @@
                     display: inline-block;
                     vertical-align: middle;
 
-                    background: linear-gradient(to right, #FFF, #FFF calc(var(--progress) * 100%), #AAA calc(var(--progress) * 100% + 20%), #AAA);
+                    background: linear-gradient(to right, var(--bright-colour), var(--bright-colour) calc(var(--progress) * 100%), var(--dim-colour) calc(var(--progress) * 100% + 20%), var(--dim-colour));
                     background-clip: text;
                     color: transparent;
                     -webkit-background-clip: text;
