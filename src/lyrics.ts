@@ -82,6 +82,7 @@ interface ASTCard {
 interface ASTWord {
     timecode: number;
     contents: string;
+    classes: Array<string>;
 }
 const timecodeRegex = /^(\d{2})\:(\d{2})\.(\d{2})$/;
 const tagRegex = /^([a-z]+)\:(.*)$/;
@@ -99,7 +100,8 @@ function parseLyrics(lyricsFile): AST {
     };
     let currentWord = {
         timecode: null,
-        contents: ""
+        contents: "",
+        classes: []
     };
     let currentVoice = null;
     for(let i = 0; i < lyricsFile.length; i++) {
@@ -138,7 +140,8 @@ function parseLyrics(lyricsFile): AST {
                     }
                     currentWord = {
                         timecode,
-                        contents: ""
+                        contents: "",
+                        classes: []
                     };
                     if(isCardTag) {
                         // Start new card
@@ -166,7 +169,8 @@ function parseLyrics(lyricsFile): AST {
                                 }
                                 currentWord = {
                                     timecode: null,
-                                    contents: ""
+                                    contents: "",
+                                    classes: []
                                 };
                                 currentVoice = tagValue;
                                 if(!currentCard.voices[currentVoice]) {
@@ -175,6 +179,15 @@ function parseLyrics(lyricsFile): AST {
                                 break;
                             case "class":
                                 currentCard.classes.push(tagValue);
+                                break;
+                            default:
+                                // Unrecognised tag
+                                break;
+                        }
+                    } else {
+                        switch(tagType) {
+                            case "class":
+                                currentWord.classes.push(tagValue);
                                 break;
                             default:
                                 // Unrecognised tag
@@ -255,6 +268,9 @@ function renderLyrics() {
             const words = cardAst.voices[voice].map<RenderedWord>(wordAst => {
                 const wordElm = document.createElement("span");
                 wordElm.classList.add("word");
+                for(const currentClass of wordAst.classes) {
+                    wordElm.classList.add(currentClass);
+                }
                 wordElm.innerHTML = wordAst.contents
                     .replace(/&/g, "&amp;")
                     .replace(/</g, "&lt;")
