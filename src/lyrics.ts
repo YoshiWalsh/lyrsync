@@ -84,7 +84,7 @@ interface ASTWord {
     contents: string;
     classes: Array<string>;
 }
-const timecodeRegex = /^(\d{2})\:(\d{2})\.(\d{2})$/;
+const timecodeRegex = /^([+-]?)(\d{2})\:(\d{2})\.(\d{2})$/;
 const tagRegex = /^([a-z]+)\:(.*)$/;
 function parseLyrics(lyricsFile): AST {
     const cards: Array<ASTCard> = [];
@@ -130,7 +130,8 @@ function parseLyrics(lyricsFile): AST {
 
                 const timecodeMatches = tagContents.match(timecodeRegex);
                 if(timecodeMatches) {
-                    const timecode = parseInt(timecodeMatches[1], 10) * 60 + parseInt(timecodeMatches[2], 10) + parseInt(timecodeMatches[3], 10) / 100;
+                    const relative = timecodeMatches[1];
+                    const rawTimecode = parseInt(timecodeMatches[2], 10) * 60 + parseInt(timecodeMatches[3], 10) + parseInt(timecodeMatches[4], 10) / 100;
                     // Start new word
                     if(currentWord.timecode !== null && currentWord.contents) {
                         if(!currentCard.voices[currentVoice]) {
@@ -138,6 +139,15 @@ function parseLyrics(lyricsFile): AST {
                         }
                         currentCard.voices[currentVoice].push(currentWord);
                     }
+
+                    // I wish there was an inline switch statement
+                    const timecode = relative ?
+                        (
+                            relative == "+" ?
+                                (currentCard.timecode || 0) + rawTimecode :
+                                (currentCard.timecode || 0) - rawTimecode // Idk why someone would want to use a negative relative timecode, but they can if they want
+                        ) :
+                        rawTimecode;
                     currentWord = {
                         timecode,
                         contents: "",
