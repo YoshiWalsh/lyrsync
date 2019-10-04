@@ -22,19 +22,25 @@
     $colour-fade-time: 2.5;
     $colour-fade-intensity: 0.3;
 
+    $clap-fade-time: 0.2;
+
+    --cue-timers: --clap-visible clap.start 0 clap.start #{$clap-fade-time} instant instantOut, --clap-fade clap.start -0.001 clap.start #{$clap-fade-time + 0.001} easeOut;
+
     overflow: hidden;
 
     font-family: 'Kaushan Script', cursive;
     font-size: 1;
 
     .card {
-        --card-timers: --fade-in start -#{$card-transition-time} start 0 linear, --colour-fade end -#{$colour-fade-time} end 0 linear;
+        --card-timers: --fade-in start -#{$card-transition-time} start 0 linear, --colour-fade end -#{$colour-fade-time} end 0 linear, --active start 0 end 0 instant instantOut;
 
         --non-colour-fade: calc(1 - (var(--colour-fade) * #{$colour-fade-intensity}));
         --bright-colour: rgb(calc(var(--non-colour-fade) * 255), calc(var(--non-colour-fade) * 255), 255);
         --dim-colour: rgb(calc(var(--non-colour-fade) * 173), calc(var(--non-colour-fade) * 173), 173);
 
-        background: black;
+        --background-shade: calc(var(--active) * var(--clap-visible) * (1 - var(--clap-fade)) * 150);
+
+        background: rgb(var(--background-shade), var(--background-shade), var(--background-shade));
         opacity: var(--fade-in);
 
         .contents {
