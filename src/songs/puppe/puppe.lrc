@@ -1,8 +1,7 @@
 [ti:Puppe]
 [ar:Rammstein]
 
-[00:00.00]
-
+[00:00.00][class:instrumental]
 [00:25.27]
 [voice:german]<00:25.27>Wenn <00:25.53>Schwesterlein <00:26.78>zur <00:27.14>Arbeit <00:27.74>muss
 [voice:english]<00:25.27>When <00:25.53>Sister <00:26.78>has <00:27.14>to <00:27.74>work
@@ -28,8 +27,6 @@
 [voice:german]<00:53.91>Ist <00:54.30>gleich <00:54.61>im <00:54.80>Zimmer <00:55.68>nebenan
 [voice:english]<00:53.91>It's <00:54.30>the <00:54.61>room <00:54.80>next <00:55.68>door
 [00:57.39]
-
-[00:58.03]
 [voice:german]<00:58.03>Am <00:58.34>Himmel <00:58.85>dunkle <00:59.69>Wolken <01:00.79>ziehen
 [voice:english]<00:58.03>In the <00:58.34>sky <00:58.85>dark <00:59.69>clouds <01:00.79>gather
 [01:02.05]
@@ -42,8 +39,6 @@
 [voice:german]<01:10.62>Bis <01:10.95>die <01:11.27>Sonne <01:12.19>untergeht
 [voice:english]<01:10.62>Until <01:10.95>the <01:11.27>sun <01:12.19>goes down
 [01:15.05]
-
-[01:26.77]
 [voice:german]<01:26.77>Sie <01:27.18>kommen <01:27.61>und <01:28.29>sie <01:28.50>gehen
 [voice:english]<01:26.77>They <01:27.18>come <01:27.61>and <01:28.29>they <01:28.50>go
 [01:30.71]
@@ -56,8 +51,6 @@
 [voice:german]<01:39.03>Und <01:39.31>die <01:39.93>Schwester <01:40.66>schreit
 [voice:english]<01:39.03>And <01:39.31>my <01:39.93>Sister <01:40.66>screams
 [01:42.23]
-
-[01:43.25]
 [voice:german]<01:43.25>Am <01:43.50>Himmel <01:44.03>dunkle <01:44.94>Wolken <01:45.89>ziehen
 [voice:english]<01:43.25>In the <01:43.50>sky <01:44.03>dark <01:44.94>clouds <01:45.89>gather
 [01:47.28]
@@ -70,7 +63,6 @@
 [voice:german]<01:55.73>Bis <01:56.01>die <01:56.39>Sonne <01:57.34>untergeht
 [voice:english]<01:55.73>Until <01:56.01>the <01:56.39>sun <01:57.34>goes down
 [01:59.70]
-
 [02:02.74][class:angry]
 [voice:german]<02:02.74>Und <02:02.90>dann <02:03.40>reiß' <02:03.99>ich <02:04.24>der <02:04.47>Puppe <02:05.01>den <02:05.50>Kopf <02:06.26>ab
 [voice:english]<02:02.74>And <02:02.90>then <02:03.40>I <02:03.99>rip <02:04.24>the <02:04.47>doll<02:05.01>'s <02:05.50>head <02:06.26>off
@@ -84,8 +76,6 @@
 [voice:german]<02:16.36>Es <02:16.79>geht mir <02:17.32>nicht <02:17.76>gut
 [voice:english]<02:16.36>I'm <02:16.79>not <02:17.32>doing <02:17.76>well
 [02:18.82][class:angry]
-
-[02:19.33][class:angry]
 [voice:german]<02:19.33>Ich <02:19.85>reiß' <02:20.39>der <02:20.89>Puppe <02:21.39>den <02:21.93>Kopf <02:22.67>ab
 [voice:english]<02:19.33>I <02:19.85>rip <02:20.39>the <02:20.89>doll<02:21.39>'s <02:21.93>head <02:22.67>off
 [02:23.24][class:angry]
@@ -107,8 +97,6 @@
 [voice:1]<02:48.07>Dam
 [voice:2]<02:48.58>dam
 [02:49.67]
-
-[02:57.04]
 [voice:german]<02:57.04>Wenn <02:57.30>Schwesterlein <02:58.51>der <02:58.86>Arbeit <02:59.63>frönt
 [voice:english]<02:57.04>When <02:57.30>Sister <02:58.51>is <02:58.86>passionately <02:59.63>working
 [03:01.16]
@@ -133,8 +121,6 @@
 [voice:german]<03:26.00>Jetzt <03:26.52>geht <03:26.93>es mir <03:27.56>gut… <03:28.44>ja!
 [voice:english]<03:26.00>Now <03:26.52>I'm <03:26.93>feeling <03:27.56>fine… <03:28.44>yes!
 [03:28.99][class:angry]
-
-[03:29.13][class:angry]
 [voice:german]<03:29.13>Ich <03:29.66>reiße <03:30.16>der <03:30.65>Puppe <03:31.18>den <03:31.65>Kopf <03:32.49>ab
 [voice:english]<03:29.13>I <03:29.66>rip <03:30.16>the <03:30.65>doll<03:31.18>'s <03:31.65>head <03:32.49>off
 [03:33.03][class:angry]

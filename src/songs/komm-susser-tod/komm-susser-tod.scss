@@ -85,6 +85,23 @@
             }
         }
 
+        &.instrumental {
+            --card-timers: --progress start 0 end 0 linear;
+
+            &::before {
+                display: block;
+                content: ' ';
+
+                position: absolute;
+                top: 0;
+                left: 0;
+                height: 4px;
+                width: calc(var(--progress) * 100%);
+
+                background: white;
+            }
+        }
+
         &.disappearing {
             .voice .voiceContents {
                 .word {
