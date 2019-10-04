@@ -84,7 +84,7 @@
         }
 
         &.instrumental {
-            --card-timers: --progress start 0 end 0 linear;
+            --card-timers: --fade-in start -#{$card-transition-time} start 0 linear, --progress start 0 end 0 linear;
 
             &::before {
                 display: block;
