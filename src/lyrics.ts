@@ -22,7 +22,6 @@ function init() {
             lyricsAst = parseLyrics(responseText);
             renderedLyrics = renderLyrics();
             attachTimers(renderedLyrics);
-            console.log(renderedLyrics);
             layoutLyrics();
             playerPromise.then(player => {
                 initialised = true;
@@ -70,6 +69,9 @@ function initialisePlayer() {
 interface AST {
     metadata: ASTMetadata;
     cards: Array<ASTCard>;
+    cues: {
+        [cueName: string]: Array<ASTCue>
+    }
 }
 interface ASTMetadata {
     offset: number;
@@ -84,10 +86,28 @@ interface ASTWord {
     contents: string;
     classes: Array<string>;
 }
+interface ASTCue {
+    start: number;
+    end: number;
+}
 const timecodeRegex = /^([+-]?)(\d{2})\:(\d{2})\.(\d{2})$/;
 const tagRegex = /^([a-z]+)\:(.*)$/;
+function parseTimecode(regexMatch: Array<string>, relativeTo: number) {
+    const [, relativeSign, minutes, seconds, centiseconds] = regexMatch;
+    const raw = parseInt(minutes) * 60 + parseInt(seconds, 10) + parseInt(centiseconds, 10) / 100;
+
+    switch(relativeSign) {
+        case "":
+            return raw;
+        case "+":
+            return relativeTo + raw;
+        case "-":
+            return relativeTo - raw;
+    }
+}
 function parseLyrics(lyricsFile): AST {
     const cards: Array<ASTCard> = [];
+    const cues: {[cueName: string]: Array<ASTCue>} = {};
     const metadata = {
         offset: 0
     };
@@ -128,10 +148,9 @@ function parseLyrics(lyricsFile): AST {
                 const tagContents = lyricsFile.slice(i + 1, tagEnd);
                 i = tagEnd;
 
-                const timecodeMatches = tagContents.match(timecodeRegex);
-                if(timecodeMatches) {
-                    const relative = timecodeMatches[1];
-                    const rawTimecode = parseInt(timecodeMatches[2], 10) * 60 + parseInt(timecodeMatches[3], 10) + parseInt(timecodeMatches[4], 10) / 100;
+                const timecodeMatch = tagContents.match(timecodeRegex);
+                if(timecodeMatch) {
+                    const timecode = parseTimecode(timecodeMatch, currentCard.timecode);
                     // Start new word
                     if(currentWord.timecode !== null && currentWord.contents) {
                         if(!currentCard.voices[currentVoice]) {
@@ -139,15 +158,6 @@ function parseLyrics(lyricsFile): AST {
                         }
                         currentCard.voices[currentVoice].push(currentWord);
                     }
-
-                    // I wish there was an inline switch statement
-                    const timecode = relative ?
-                        (
-                            relative == "+" ?
-                                (currentCard.timecode || 0) + rawTimecode :
-                                (currentCard.timecode || 0) - rawTimecode // Idk why someone would want to use a negative relative timecode, but they can if they want
-                        ) :
-                        rawTimecode;
                     currentWord = {
                         timecode,
                         contents: "",
@@ -190,6 +200,44 @@ function parseLyrics(lyricsFile): AST {
                             case "class":
                                 currentCard.classes.push(tagValue);
                                 break;
+                            case "cue":
+                                const [cueName, startString, endString] = tagValue.split("|");
+                                const startMatch = startString.match(timecodeRegex);
+                                const endMatch = endString && endString.match(timecodeRegex);
+                                
+                                if(!cues[cueName]) {
+                                    cues[cueName] = [];
+                                }
+                                
+                                if(startMatch) {
+                                    // If the cue has a start time, we create a new cue at that time
+                                    const start = parseTimecode(startMatch, currentCard.timecode);
+
+                                    // If the cue also has an end time, store that. Otherwise, default to just using the start time
+                                    // The cue end time is relative to the cue start time
+                                    const end = endMatch ? parseTimecode(endMatch, start) : start;
+
+                                    cues[cueName].push({
+                                        start,
+                                        end,
+                                    });
+                                } else if (endMatch) {
+                                    // If the cue has no start time but does have an end time, we update the previous cue with this end time
+                                    // This allows for easily making cues that span a certain range. E.g.
+                                    // [00:05.23][cue:range|+00:00.00]
+                                    // [00:25.22][cue:range||+00:00.00]
+                                    // This will create a cue going from 00:05.23 to 00:25.22
+                                    // With this syntax, the cue end time is relative to the current card's start time
+
+                                    const previousCue = cues[cueName][cues[cueName].length - 1];
+                                    if(!previousCue) {
+                                        console.warn("Attempt to use range cue syntax, but the starting cue doesn't exist");
+                                    } else {
+                                        previousCue.end = parseTimecode(endMatch, currentCard.timecode);
+                                    }
+                                } else {
+                                    console.warn("Attempt to create a cue of type '" + cueName + "' with no start/end time");
+                                }
                             default:
                                 // Unrecognised tag
                                 break;
@@ -224,9 +272,24 @@ function parseLyrics(lyricsFile): AST {
     });
     cards.sort((a, b) => a.timecode - b.timecode);
 
+    for(let cueName in cues) {
+        const currentCues = cues[cueName];
+
+        currentCues.sort((a, b) => a.start - b.start);
+
+        let currentTime = 0;
+        for(let cue of currentCues) {
+            if(cue.start < currentTime) {
+                console.warn("Overlapping cues! Cue type '" + cueName + "' has a cue ending at", currentTime, "seconds but the next starts at", cue.start, "seconds.");
+            }
+            currentTime = cue.end;
+        }
+    }
+
     return {
         metadata,
         cards,
+        cues
     };
 }
 
