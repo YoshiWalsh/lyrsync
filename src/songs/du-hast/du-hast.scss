@@ -1,0 +1,135 @@
+@import url('https://fonts.googleapis.com/css?family=Teko&display=block');
+
+.start {
+    font-family: 'Teko', sans-serif;
+    font-size: 1rem;
+}
+
+.lyricsContainer.du-hast {
+    $card-transition-time: 0.5;
+    $card-early-time: 0.5;
+    $text-movement-time: 0.2;
+
+    $notes: e, A, B, C, D, E;
+    $note-fade-time: 0.2;
+
+    overflow: hidden;
+
+    font-family: 'Teko', sans-serif;
+    font-size: 1rem;
+
+    @function noteTimers() {
+        $timers: "";
+        @each $note in $notes {
+            $timers: $timers + "--display-" + $note + " note-" + $note + ".start 0 note-" + $note + ".end " + $note-fade-time + " instant instantOut, ";
+            $timers: $timers + "--fade-" + $note + " note-" + $note + ".end 0 note-" + $note + ".end " + $note-fade-time + " easeOut, ";
+        }
+        @return str-slice($timers, 1, -3);
+    }
+
+    --cue-timers: #{noteTimers()};
+
+    .card {
+        --card-timers: --fade-in start -#{$card-transition-time + $card-early-time} start -#{$card-early-time} linear, --fade-out end -#{$card-transition-time + $card-early-time} end -#{$card-early-time} linear;
+
+        z-index: -1;
+        opacity: calc(var(--fade-in) - var(--fade-out));
+
+        .contents {
+            z-index: -4;
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            transform: translateY(-50%);
+            text-align: center;
+        }
+
+        .voice {
+            display: block;
+            overflow: visible;
+            padding: 0;
+            font-size: 0;
+
+            --movement-direction: -1;
+
+            &:first-child {
+                --movement-direction: 1;
+            }
+
+            .voiceContents {
+                display: inline-block;
+
+                overflow: visible;
+                padding: 0.1rem;
+                margin: 1rem 0;
+                font-size: 1rem;
+
+                .word {
+                    --word-timers: --fade-in start -#{$text-movement-time} start 0 linear, --shrink-in start -#{$text-movement-time} start 0 linear;
+                    
+                    display: inline-block;
+                    vertical-align: middle;
+
+                    overflow: visible;
+
+                    backface-visibility: hidden;
+            
+                    opacity: var(--fade-in);
+                    transform-origin: 50% 50%;
+                    transform: scale(calc(2 - var(--shrink-in)));
+                }
+            }
+        }
+
+        &.big {
+            .voice .voiceContents {
+                font-size: 2rem;
+            }
+        }
+
+        /* For the "du, du hast, du hast mich" part I want the 'du' to always appear in the same place. */
+        /* In order to achieve this while the text is centred, I'm inserting placeholder text to force the width of the element. */
+        &.du-hast-mich {
+            .voiceContents {
+                position: relative;
+                text-align: left;
+            }
+
+            .voice.german .voiceContents::before {
+                content: 'Du hast mich \a';
+                white-space: pre-line;
+                color: transparent;
+            }
+            .voice.english .voiceContents::after {
+                content: '\a You have me';
+                color: transparent;
+                white-space: pre-line;
+            }
+        }
+    }
+
+    .card.note-bar {
+        position: absolute;
+        height: 16.666%;
+
+        background: darkred;
+
+        z-index: -5;
+
+        $i: 0;
+        @each $note in $notes {
+            &.#{$note} {
+                top: #{(5-$i) * 100% / 6};
+                opacity: calc(var(--display-#{$note}) - var(--fade-#{$note}));
+            }
+
+            $i: $i + 1;
+        }
+        z-index: -2;
+    }
+
+    .card.invisible {
+        display: none;
+    }
+}
