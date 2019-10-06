@@ -52,7 +52,7 @@
 
                 overflow: hidden;
                 padding: 0.1rem;
-                margin: 1em 0;
+                margin: 1rem 0;
                 font-size: 1rem;
 
                 .word {
@@ -97,7 +97,7 @@
             .voice .voiceContents {
                 overflow: visible;
                 padding: 0;
-                margin: -0.2em;
+                margin: -0.2rem;
 
                 .word {
                     --word-timers: --fly-in start -#{$angry-text-movement-time} start 0 linear, --shake start #{$angry-text-shake-time} start 0 easeIn none oscillate1;
