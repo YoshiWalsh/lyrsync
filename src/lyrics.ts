@@ -28,7 +28,7 @@ function init() {
                 initialised = true;
                 const start = document.querySelector<HTMLDivElement>(".start");
                 start.style.display = "block";
-                start.addEventListener("click", () => {
+                const begin = () => {
                     const duration = player.duration();
                     start.style.display = "none";
                     window['player'] = player; // useful for debugging
@@ -159,8 +159,41 @@ function init() {
                         fullscreenToggle.classList.toggle("active", document.fullscreenElement === container);
                     });
 
+                    document.addEventListener("keydown", (evt) => {
+                        switch(evt.key) {
+                            case "ArrowLeft":
+                            case "ArrowRight":
+                                const direction = evt.key == "ArrowRight" ? 1 : -1;
+                                const magnitude = evt.ctrlKey ? 10 : 5;
+                                const desiredTime = clamp(player.currentTime() + direction * magnitude, 0, duration);
+                                playing ? player.play(desiredTime) : player.pause(desiredTime);
+                                evt.preventDefault();
+                                evt.stopPropagation();
+                                break;
+                            case "ArrowUp":
+                            case "ArrowDown":
+                                player.volume(clamp(player.volume() + 0.05 * (evt.key == "ArrowUp" ? 1 : -1)));
+                                break;
+                            case " ":
+                                playing ? player.pause() : player.play();
+                                evt.preventDefault();
+                                evt.stopPropagation();
+                                break;
+                            default:
+                                break;
+                        }
+                    });
+
                     player.play();
-                })
+                };
+                start.addEventListener("click", begin);
+                const startKeyListener = (evt) => {
+                    if(evt.key === " ") {
+                        window.removeEventListener("keydown", startKeyListener);
+                        begin();
+                    }
+                };
+                window.addEventListener("keydown", startKeyListener);
             });
         }, err => {
             console.error("Failed to retrieve lyrics", err);
