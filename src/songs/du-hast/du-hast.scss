@@ -82,6 +82,25 @@
             }
         }
 
+        &.instrumental {
+            --card-timers: --fade-in start -#{$card-transition-time + $card-early-time} start -#{$card-early-time} linear, --fade-out end -#{$card-transition-time + $card-early-time} end -#{$card-early-time} linear, --progress start 0 end 0 linear;
+    
+            opacity: calc(var(--fade-in) - var(--fade-out));
+
+            &::before {
+                display: block;
+                content: ' ';
+
+                position: absolute;
+                top: 0;
+                left: 0;
+                height: 4px;
+                width: calc(var(--progress) * 100%);
+
+                background: white;
+            }
+        }
+
         &.big {
             .voice .voiceContents {
                 font-size: 2rem;

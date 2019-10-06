@@ -1,7 +1,7 @@
 [ti:Du Hast]
 [ar:Rammstein]
 
-[00:00.00]
+[00:00.00][class:instrumental]
 [00:30.82][class:du-hast-mich]
 [voice:german]<00:30.82>Du
 [voice:english]<00:30.82>You
@@ -11,6 +11,7 @@
 [00:34.43][class:du-hast-mich]
 [voice:german]<00:34.43>Du <00:34.65>hast <00:35.06>mich
 [voice:english]<00:34.43>You <00:34.65>have <00:35.06>me
+[00:36.93]
 [00:38.51][class:du-hast-mich]
 [voice:german]<00:38.51>Du
 [voice:english]<00:38.51>You
@@ -20,6 +21,7 @@
 [00:42.10][class:du-hast-mich]
 [voice:german]<00:42.10>Du <00:42.29>hast <00:42.67>mich
 [voice:english]<00:42.10>You <00:42.29>have <00:42.67>me
+[00:44.60]
 [00:46.13][class:du-hast-mich]
 [voice:german]<00:46.13>Du
 [voice:english]<00:46.13>You
@@ -29,6 +31,7 @@
 [00:49.82][class:du-hast-mich]
 [voice:german]<00:49.82>Du <00:49.98>hast <00:50.40>mich
 [voice:english]<00:49.82>You <00:49.98>have <00:50.40>me
+[00:52.32]
 [00:53.81][class:du-hast-mich]
 [voice:german]<00:53.81>Du
 [voice:english]<00:53.81>You
@@ -38,6 +41,7 @@
 [00:57.45][class:du-hast-mich]
 [voice:german]<00:57.45>Du <00:57.63>hast <00:58.09>mich
 [voice:english]<00:57.45>You <00:57.63>have <00:58.09>me
+[00:59.95]
 [01:16.87][class:du-hast-mich]
 [voice:german]<01:16.87>Du
 [voice:english]<01:16.87>You
@@ -68,9 +72,11 @@
 [01:41.76][class:big]
 [voice:german]<01:41.76>Nein!
 [voice:english]<01:41.76>No!
+[01:43.26]
 [01:45.64][class:big]
 [voice:german]<01:45.64>Nein!
 [voice:english]<01:45.64>No!
+[01:47.14]
 [01:47.55]
 [voice:german]<01:47.55>Willst <01:48.02>du <01:48.52>bis <01:48.97>der <01:49.44>Tod <01:49.95>euch <01:50.11>scheidet
 [voice:english]<01:47.55>Do <01:48.02>you <01:48.52>want, <01:48.97>till <01:49.44>death <01:49.95>do you <01:50.11>part,
@@ -80,9 +86,11 @@
 [01:57.10][class:big]
 [voice:german]<01:57.10>Nein!
 [voice:english]<01:57.10>No!
+[01:58.60]
 [02:00.95][class:big]
 [voice:german]<02:00.95>Nein!
 [voice:english]<02:00.95>No!
+[02:02.45]
 [02:18.21][class:du-hast-mich]
 [voice:german]<02:18.21>Du
 [voice:english]<02:18.21>You
@@ -92,6 +100,7 @@
 [02:21.82][class:du-hast-mich]
 [voice:german]<02:21.82>Du <02:21.99>hast <02:22.47>mich
 [voice:english]<02:21.82>You <02:21.99>have <02:22.47>me
+[02:24.32]
 [02:25.84][class:du-hast-mich]
 [voice:german]<02:25.84>Du
 [voice:english]<02:25.84>You
@@ -101,6 +110,7 @@
 [02:29.50][class:du-hast-mich]
 [voice:german]<02:29.50>Du <02:29.65>hast <02:30.13>mich
 [voice:english]<02:29.50>You <02:29.65>have <02:30.13>me
+[02:32.00]
 [02:33.55][class:du-hast-mich]
 [voice:german]<02:33.55>Du
 [voice:english]<02:33.55>You
@@ -131,9 +141,11 @@
 [03:13.78][class:big]
 [voice:german]<03:13.78>Nein!
 [voice:english]<03:13.78>No!
+[03:15.28]
 [03:17.71][class:big]
 [voice:german]<03:17.71>Nein!
 [voice:english]<03:17.71>No!
+[03:19.21]
 [03:19.63]
 [voice:german]<03:19.63>Willst <03:20.09>du <03:20.59>bis <03:21.05>zum <03:21.51>Tod <03:22.01>der <03:22.17>Scheide
 [voice:english]<03:19.63>Do <03:20.09>you <03:20.59>want, <03:21.05>till <03:21.51>death <03:22.01>do you <03:22.17>part,
@@ -143,9 +155,11 @@
 [03:29.18][class:big]
 [voice:german]<03:29.18>Nein!
 [voice:english]<03:29.18>No!
+[03:30.68]
 [03:33.05][class:big]
 [voice:german]<03:33.05>Nein!
 [voice:english]<03:33.05>No!
+[03:34.55]
 [03:34.91]
 [voice:german]<03:34.91>Willst <03:35.39>du <03:35.87>bis <03:36.35>der <03:36.84>Tod <03:37.31>euch <03:37.47>scheidet
 [voice:english]<03:34.91>Do <03:35.39>you <03:35.87>want, <03:36.35>till <03:36.84>death <03:37.31>do you <03:37.47>part,
@@ -155,11 +169,11 @@
 [03:44.53][class:big]
 [voice:german]<03:44.53>Nein!
 [voice:english]<03:44.53>No!
+[03:46.03]
 [03:48.45][class:big]
 [voice:german]<03:48.45>Nein!
 [voice:english]<03:48.45>No!
-[03:50.24]
-<03:50.24>
+[03:49.95]
 
 [comment:Keyboard riff]
 [99:00.00][class:note-bar][class:e]

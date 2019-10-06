@@ -428,8 +428,6 @@ function parseLyrics(lyricsFile): AST {
         cards.push(currentCard);
     }
 
-    cards.sort((a, b) => a.timecode - b.timecode);
-
     for(let cueName in cues) {
         const currentCues = cues[cueName];
 
