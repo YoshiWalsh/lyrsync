@@ -42,6 +42,24 @@ body {
     cursor: pointer;
 }
 
+.back {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 1;
+    height: 60px;
+    width: 45px;
+    background-image: url(/icons/back.svg);
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: 80%;
+    opacity: 0.5;
+
+    &:hover {
+        opacity: 1;
+    }
+}
+
 .controls {
     position: absolute;
     bottom: 0;
