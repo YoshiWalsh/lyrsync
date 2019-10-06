@@ -339,6 +339,10 @@ function parseLyrics(lyricsFile): AST {
         }
     }
 
+    if(currentWord.timecode !== null && currentWord.contents) {
+        currentCard.voices[currentVoice].push(currentWord);
+    }
+
     if(currentCard.timecode !== null) {
         cards.push(currentCard);
     }
