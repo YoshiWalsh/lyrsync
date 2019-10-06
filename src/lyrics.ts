@@ -99,6 +99,7 @@ function init() {
                             if(playingBeforeSeek) {
                                 player.play();
                                 playPause.classList.add("playing");
+                                playing = true;
                             }
                             controls.classList.remove("seeking");
                         }
