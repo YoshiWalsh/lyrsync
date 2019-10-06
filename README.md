@@ -6,9 +6,11 @@ lyrsync is a project to display immersive synchronised lyrics in a browser.
 
 Lyrics are provided in files based on the [Enhanced LRC format](https://en.wikipedia.org/wiki/LRC_(file_format)#Enhanced_format). Some extensions have been made to this format:
 
- - "Lines" from the LRC format are now referred to as "cards". Each card can span multiple lines in the text file.
- - Each card can contain multiple "voices". For example, you could have separate voices for the lead vocalist & backing vocalists, or you could use one voice for a song's original lyrics and another voice for a translation.
+ - "Lines" from the LRC format are now referred to as "cards". Each card can span multiple lines in the text file
+ - Each card can contain multiple "voices". For example, you could have separate voices for the lead vocalist & backing vocalists, or you could use one voice for a song's original lyrics and another voice for a translation
  - Compressed/deduplicated LRC files (ones where a single line in the file might have multiple Line Time Tags) are no longer supported. (They didn't make much sense if you were using Word Time Tags anyway)
+ - Each card/word can be assigned a class to allow for giving them different styles (see [Komm, süßer Tod](https://lyrsync.joshwalsh.me/songs/komm-susser-tod/index.html) for an example)
+ - Arbitrary "cues" can be defined to trigger animation effects at certain points in the song (see [Rammstein - Du Hast](https://lyrsync.joshwalsh.me/songs/du-hast/index.html) for an example)
 
 ## How do the animations work?
 
@@ -23,10 +25,9 @@ The core concept this library introduces is timers. Timers allow lyrics.js to pr
 Different types of timers are available on different elements:
 
 `.lyricsContainer` element:
- - cue-timers (not yet implemented)
+ - cue-timers
 `.card` elements:
  - card-timers
- - word-timers (not yet implemented)
 `.word` elements:
  - word-timers
 
@@ -82,6 +83,5 @@ yarn dev
 
 ## Todo
 
- - Add support for cue tags, which will allow triggering extra animations/effects at arbitrary times
  - Add more songs
  - Cleanup code (split into multiple files, rewrite parsing algorithm)
