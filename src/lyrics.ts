@@ -108,7 +108,7 @@ function init() {
                             adjustingVolume = false;
                             volume.classList.remove("adjusting");
                         }
-                    };
+                    });
 
                     const seek = (evt: MouseEvent) => {
                         const timelineLocation = timeline.getBoundingClientRect();
