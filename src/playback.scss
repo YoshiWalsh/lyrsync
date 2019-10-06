@@ -1,0 +1,247 @@
+* {
+    padding: 0;
+    margin: 0;
+}
+
+html {
+    background: black;
+    color: white;
+    font-size: 80px;
+}
+
+@media (max-width: 1280px) {
+    html {
+        font-size: 50px;
+    }
+}
+
+@media (max-width: 720px) {
+    html {
+        font-size: 30px;
+    }
+}
+
+body {
+    height: 100vh;
+    overflow: hidden;
+}
+
+.container {
+    height: 100vh;
+    position: relative;
+}
+
+.start {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    padding: 50vh;
+    transform: translateY(-50%);
+    text-align: center;
+    cursor: pointer;
+}
+
+.controls {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 55px;
+
+    font-size: 0;
+
+    transition: transform 0.3s;
+
+    transform: translateY(100%);
+
+    &.active, &:hover, &.seeking {
+        transform: translateY(0);
+    }
+
+    .timeline {
+        position: relative;
+
+        height: 10px;
+        width: 100%;
+
+        background: #333;
+
+        cursor: pointer;
+
+        &::before {
+            content: ' ';
+            display: block;
+            position: absolute;
+            top: 0;
+            height: 100%;
+            width: calc(var(--progress) * 100%);
+            background: white;
+        }
+    }
+
+    .buttons {
+        height: 45px;
+        background: rgba(0, 0, 0, 0.8);
+
+        button {
+            position: relative;
+            height: 45px;
+            width: 60px;
+
+            background: none;
+            border: none;
+
+            background-size: 100%;
+
+            cursor: pointer;
+
+            .icon {
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+
+                background-size: 80%;
+                background-position: center;
+                background-repeat: no-repeat;
+                opacity: 0.7;
+            }
+        }
+
+        .playPause {
+            float: left;
+
+            .play {
+                opacity: 1;
+                background-image: url('/icons/play.svg');
+            }
+            .pause {
+                opacity: 0;
+                background-image: url('/icons/pause.svg');
+            }
+
+            &.playing {
+                .play {
+                    opacity: 0;
+                }
+                .pause {
+                    opacity: 1;
+                }
+            }
+        }
+
+        .rightCluster {
+            float: right;
+            
+            .volume {
+                display: inline-block;
+
+                .unmuted {
+                    opacity: 1;
+                    background-image: url('/icons/volume.svg');
+                }
+                .muted {
+                    opacity: 0;
+                    background-image: url('/icons/volume-muted.svg');
+                }
+
+                &.muted {
+                    .unmuted {
+                        opacity: 0;
+                    }
+                    .muted {
+                        opacity: 1;
+                    }
+                }
+
+                .volumeSliderContainer {
+                    position: absolute;
+                    display: none;
+                    background: rgba(0, 0, 0, 0.8);
+                    bottom: 100%;
+                    padding: 10px 20px;
+
+                    cursor: default;
+
+                    .volumeSlider {
+                        position: relative;
+
+                        width: 20px;
+                        height: 160px;
+                        background: #333;
+
+                        cursor: pointer;
+
+                        &::before {
+                            content: ' ';
+                            position: absolute;
+                            display: block;
+
+                            bottom: 0;
+                            width: 100%;
+                            height: calc(var(--volume) * 100%);
+
+                            background: white;
+                        }
+                    }
+                }
+
+                &:hover .volumeSliderContainer, &.adjusting .volumeSliderContainer {
+                    display: block;
+                }
+            }
+
+            .fullscreen {
+                display: inline-block;
+
+                .enter {
+                    opacity: 1;
+                    background-image: url('/icons/fullscreen.svg');
+                }
+                .exit {
+                    opacity: 0;
+                    background-image: url('/icons/unfullscreen.svg');
+                }
+
+                &.active {
+                    .enter {
+                        opacity: 0
+                    }
+                    .exit {
+                        opacity: 1;
+                    }
+                }
+            }
+        }
+    }
+}
+
+
+
+.lyricsContainer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+
+    cursor: default;
+
+    .card {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+    }
+}
+
+.playerContainer {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 0;
+}

@@ -3,7 +3,7 @@
     <head>
         <meta charset="UTF-8" />
         <title>{{title}}</title>
-        <link rel="stylesheet" type="text/css" href="/global.scss" />
+        <link rel="stylesheet" type="text/css" href="/playback.scss" />
         <link rel="stylesheet" type="text/css" href="/songs/{{name}}/{{name}}.scss" />
         <link rel="preload" as="fetch" href="/songs/{{name}}/{{name}}.lrc" class="lyricsFile" />
     </head>
@@ -15,6 +15,28 @@
             <div class="lyricsContainer {{name}}"></div>
             <div class="playerContainer">
                 <div class="player" data-media-url="{{mediaUrl}}"></div>
+            </div>
+            <div class="controls">
+                <div class="timeline"></div>
+                <div class="buttons">
+                    <button type="button" class="playPause">
+                        <div class="icon play"></div>
+                        <div class="icon pause"></div>
+                    </button>
+                    <div class="rightCluster">
+                        <button type="button" class="volume">
+                            <div class="icon unmuted"></div>
+                            <div class="icon muted"></div>
+                            <div class="volumeSliderContainer">
+                                <div class="volumeSlider"></div>
+                            </div>
+                        </button>
+                        <button type="button" class="fullscreen">
+                            <div class="icon enter"></div>
+                            <div class="icon exit"></div>
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
         <script type="text/javascript">

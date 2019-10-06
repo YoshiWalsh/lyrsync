@@ -82,7 +82,6 @@ yarn dev
 
 ## Todo
 
- - Add custom controls (play/pause, volume, seek, fullscreen)
  - Add support for cue tags, which will allow triggering extra animations/effects at arbitrary times
  - Add more songs
- - Clean parsing code (it's currently a mess)
+ - Cleanup code (split into multiple files, rewrite parsing algorithm)
