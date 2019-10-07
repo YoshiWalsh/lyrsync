@@ -98,6 +98,14 @@ function init() {
                                 player.play();
                                 playPause.classList.add("playing");
                                 playing = true;
+
+                                // Sometimes Popcorn.js doesn't realise the video is playing again, I think it's a race condition.
+                                // If this happens, the currentTime() function loses accuracy. In order to prevent this, we'll remind Popcorn that it's playing after a little bit.
+                                window.setTimeout(() => {
+                                    if(playing) {
+                                        player.play();
+                                    }
+                                }, 500);
                             }
                             controls.classList.remove("seeking");
                         }
