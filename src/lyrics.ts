@@ -5,6 +5,7 @@ let initialised = false;
 const lerp = (x: number, min: number, max: number) => min*(1-x)+max*x;
 const unlerp = (x: number, min: number, max: number) => (x-min) / (max-min);
 const clamp = (x: number, min?: number, max?: number) => Math.min(Math.max(x, min || 0), max || 1);
+const mod = (x: number, y: number) => ((x%y)+y)%y;
 
 let lyricsAst: AST;
 let renderedLyrics: RenderedLyrics;
@@ -573,13 +574,20 @@ const timingFunctions: {[name: string]: (x: number) => number} = {
     easeIn: bezier(0.42, 0, 1, 1),
     easeOut: bezier(0, 0, 0.58, 1),
     easeInOut: bezier(0.42, 0, 0.58, 1),
+    uneaseInOut: bezier(0, 0.75, 1, 0.25),
+    sin: x => Math.sin(x * Math.PI * 2)
 };
-const postprocessingFunctions: {[name: string]: (timedProgress: number, linearProgress: number) => number} = {
+const postprocessingFunctions: {[name: string]: (timedProgress: number, preprocessedProgress: number) => number} = {
     none: x => x,
     oscillate1: oscillateFunctionGenerator(1),
     oscillate2: oscillateFunctionGenerator(2),
     oscillate4: oscillateFunctionGenerator(4),
 };
+const preprocessingFunctions: {[name: string]: (progress: number) => number} = {
+    clamp: clamp,
+    none: x => x,
+    loop: x => mod(x, 1)
+}
 interface Timer {
     name: string,
     fromReference: string,
@@ -591,7 +599,7 @@ interface Timer {
 };
 function parseTimers(timersString: string): Array<Timer> {
     return timersString.split(",").filter(s => s).map(timerString => {
-        let [name, fromReference, fromOffset, toReference, toOffset, forwardTimingFunctionName, reverseTimingFunctionName, postprocessingFunctionName] = timerString.trim().split(" ");
+        let [name, fromReference, fromOffset, toReference, toOffset, forwardTimingFunctionName, reverseTimingFunctionName, postprocessingFunctionName, preprocessingFunctionName] = timerString.trim().split(" ");
 
         if(!forwardTimingFunctionName) {
             forwardTimingFunctionName = "linear";
@@ -613,23 +621,31 @@ function parseTimers(timersString: string): Array<Timer> {
         if(!postprocessingFunctions[postprocessingFunctionName]) {
             throw new Error("Attempt to use non-existent postprocessing function " + postprocessingFunctionName);
         }
+        if(!preprocessingFunctionName) {
+            preprocessingFunctionName = "clamp";
+        }
+        if(!preprocessingFunctions[preprocessingFunctionName]) {
+            throw new Error("Attempt to use non-existent preprocessing function " + preprocessingFunctionName);
+        }
 
         const forwardTimingFunction = timingFunctions[forwardTimingFunctionName];
         const reverseTimingFunction = reverseTimingFunctionName ? timingFunctions[reverseTimingFunctionName] : null;
         const postprocessingFunction = postprocessingFunctions[postprocessingFunctionName];
+        const preprocessingFunction = preprocessingFunctions[preprocessingFunctionName];
 
         const timingFunction = (linearProgress) => {
+            const preprocessedProgress = preprocessingFunction(linearProgress);
             const timedProgress = reverseTimingFunction ?
                 (
-                    linearProgress < 0.5 ?
-                    forwardTimingFunction(unlerp(linearProgress, 0, 0.5)) :
-                    lerp(reverseTimingFunction(unlerp(linearProgress, 0.5, 1)), 1, 0)
+                    preprocessedProgress < 0.5 ?
+                    forwardTimingFunction(unlerp(preprocessedProgress, 0, 0.5)) :
+                    lerp(reverseTimingFunction(unlerp(preprocessedProgress, 0.5, 1)), 1, 0)
                 ) :
-                forwardTimingFunction(linearProgress);
+                forwardTimingFunction(preprocessedProgress);
         
-            const postprocessed = postprocessingFunction ? postprocessingFunction(timedProgress, linearProgress) : timedProgress;
+            const postprocessedProgress = postprocessingFunction ? postprocessingFunction(timedProgress, preprocessedProgress) : timedProgress;
         
-            return postprocessed;
+            return postprocessedProgress;
         }
 
         return {
@@ -646,20 +662,41 @@ function parseTimers(timersString: string): Array<Timer> {
 function getTimerValue(timer: Timer, time: number, referenceValues: {[name: string]: number}): number {
     const from = referenceValues[timer.fromReference] + timer.fromOffset;
     const to = referenceValues[timer.toReference] + timer.toOffset;
-    const linearProgress = clamp(unlerp(time, from, to));
+    const linearProgress = unlerp(time, from, to);
     return timer.timingFunction(linearProgress);
 }
 
 function layoutLyrics() {
     let previousVoiceWidths = [];
 
+    const containerRect = container.getBoundingClientRect();
+    container.style.setProperty("--container-width", "" + containerRect.width);
+    container.style.setProperty("--container-height", "" + containerRect.height);
+
     for(let card of renderedLyrics.cards) {
         // It's important to ensure that all voices have the same height, otherwise the separator will move and it will look bad
+        container.classList.add("layout"); // Allow custom CSS to undo things that might interfere with the layout process
         const voiceElms = card.voices.map(v => v.voiceElm);
         const voiceContentsElms = card.voices.map(v => v.contentsElm);
         voiceContentsElms.forEach(voiceElm => voiceElm.style.height = "auto");
+
+        const cardRect = card.cardElm.getBoundingClientRect();
         const voiceHeight = Math.max(...voiceContentsElms.map(voiceElm => voiceElm.getBoundingClientRect().height));
-        voiceContentsElms.forEach(voiceElm => voiceElm.style.height = voiceHeight + "px");
+        for(let v of card.voices) {
+            const voiceContentsRect = v.contentsElm.getBoundingClientRect();
+            v.voiceElm.style.setProperty("--voice-contents-left-within-card", "" + (voiceContentsRect.left - cardRect.left));
+            v.voiceElm.style.setProperty("--voice-contents-top-within-card", "" + (voiceContentsRect.top - cardRect.top));
+            for(let w of v.words) {
+                const wordRect = w.wordElm.getBoundingClientRect();
+                w.wordElm.style.setProperty("--word-width", "" + wordRect.width);
+                w.wordElm.style.setProperty("--word-height", "" + wordRect.height);
+                w.wordElm.style.setProperty("--word-left-within-voice-contents", "" + (wordRect.left - voiceContentsRect.left));
+                w.wordElm.style.setProperty("--word-top-within-voice-contents", "" + (wordRect.top - voiceContentsRect.top));
+            }
+        };
+        voiceContentsElms.forEach(voiceContentsElm => voiceContentsElm.style.height = voiceHeight + "px");
+        container.style.setProperty("--voice-height", "" + voiceHeight);
+        container.classList.remove("layout");
 
         // Here's some extra data that's used for separator sizing (e.g. etoile et toi)
         const voiceWidths = voiceContentsElms.map(contentsElm => contentsElm.getBoundingClientRect().width);
