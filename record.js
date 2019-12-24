@@ -7,13 +7,13 @@
 // output video file name (container format must support h264, so mp4 and mkv should work)
 // start time (ms)
 // end time (ms)
-
 const path = require('path');
 const fs = require('fs');
 const childProcess = require('child_process');
 const selenium = require('selenium-webdriver');
 const http = require('http');
 const httpProxy = require('http-proxy');
+const {promisify} = require('util');
 
 const proxyPort = 9019;
 const proxyMockPath = "/popcorn-package"; // The proxy will replace any requests starting with this path with the custom harness JavaScript that we want to inject.
@@ -68,10 +68,8 @@ async function record() {
     ]);
     const ffmpegPromise = new Promise((resolve, reject) => {
         ffmpegProcess.on('close', (code) => {
-            console.log("ffmpeg terminated, killing Parcel");
             parcelProcess.kill();
             if(!code) {
-                console.log("Done!");
                 resolve();
             } else {
                 reject(new Error("ffmpeg closed with code " + code));
@@ -130,18 +128,19 @@ async function record() {
     for(let frame = 0, currentTime = startTime; currentTime < endTime; frame++, currentTime = startTime + frame * 1000 / fps) {
         await browser.executeScript("setTime(" + currentTime + ")");
         const screenshot = await browser.takeScreenshot();
-        ffmpegProcess.stdin.write(Buffer.from(screenshot, 'base64'));
+        await promisify(ffmpegProcess.stdin.write).bind(ffmpegProcess.stdin)(Buffer.from(screenshot, 'base64'));
     }
 
     console.log("Shutting down...");
-    ffmpegProcess.stdin.end();
+    await promisify(ffmpegProcess.stdin.end).bind(ffmpegProcess.stdin)();
     await browser.quit();
-    server.close();
-    proxy.close();
+    await promisify(server.close).bind(server)();
     await ffmpegPromise.finally();
 }
 record().then(() => {
-    console.log("done");
+    console.log("Done!");
+    // For some reason Node keeps waiting for something. I can't work out what's keeping it open. So I'm taking the easy way out.
+    process.exit();
 }, err => {
     console.error(err);
 });
