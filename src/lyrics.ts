@@ -1,5 +1,7 @@
 import bezier from 'bezier-easing';
 
+console.log("Lyrcis.ts startup");
+
 let initialised = false;
 
 const lerp = (x: number, min: number, max: number) => min*(1-x)+max*x;
@@ -224,7 +226,9 @@ function initialisePlayer() {
 
         player.on("canplay", () => {
             function update() {
-                currentTime = player.currentTime() + lyricsAst.metadata.offset;
+                if(lyricsAst) {
+                    currentTime = player.currentTime() + lyricsAst.metadata.offset;
+                }
                 window.requestAnimationFrame(update);
             }
             window.requestAnimationFrame(update);

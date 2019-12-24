@@ -27,15 +27,19 @@
     font-family: 'Kaushan Script', cursive;
     font-size: 1;
 
+    background: url(https://i.imgur.com/oHIHgL0.png);
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center center;
+
     .card {
-        --card-timers: --fade-in start -#{$card-transition-time} start 0 linear, --colour-fade end -#{$colour-fade-time} end 0 linear;
+        --card-timers: --fade-in start -#{$card-transition-time} start 0 linear, --fade-out end -#{$card-transition-time} end 0 linear, --colour-fade end -#{$colour-fade-time} end 0 linear;
 
         --non-colour-fade: calc(1 - (var(--colour-fade) * #{$colour-fade-intensity}));
         --bright-colour: rgb(calc(var(--non-colour-fade) * 255), calc(var(--non-colour-fade) * 255), 255);
         --dim-colour: rgb(calc(var(--non-colour-fade) * 173), calc(var(--non-colour-fade) * 173), 173);
 
-        background: black;
-        opacity: var(--fade-in);
+        opacity: calc(var(--fade-in) - var(--fade-out));
 
         .contents {
             position: absolute;
@@ -93,11 +97,13 @@
         }
 
         &.instrumental {
-            --card-timers: --fade-in start -#{$card-transition-time} start 0 linear, --progress start 0 end 0 linear;
+            --card-timers: --progress start 0 end 0 linear, --fade-out end -#{$card-transition-time} end 0 linear;
 
             &::before {
                 display: block;
                 content: ' ';
+
+                opacity: calc(1 - var(--fade-out));
 
                 position: absolute;
                 top: 0;
