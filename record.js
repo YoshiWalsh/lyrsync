@@ -4,7 +4,7 @@
 // node record.js 'etoile-et-toi-(edition-le-blanc)' ../recording.mp4 0 365000
 // The parameters are:
 // song name
-// output video file name (container format must support x264, so mp4 and mkv should work)
+// output video file name (container format must support h264, so mp4 and mkv should work)
 // start time (ms)
 // end time (ms)
 
@@ -62,6 +62,7 @@ async function record() {
         '-i', '-',
         '-c:v', 'libx264',
         '-preset', 'slow',
+        '-pix_fmt', 'yuv420p',
         '-crf', '17',
         outputFilename
     ]);
