@@ -1,0 +1,156 @@
+@import url('https://fonts.googleapis.com/css?family=Noto+Serif+JP&display=block');
+@import url('https://fonts.googleapis.com/css?family=Cookie&display=block');
+
+$backgrounds: (
+    "landscape0",
+    "shhh",
+    "moon",
+    "again",
+    "moon2",
+    "landscape1",
+    "landscape2",
+    "face",
+    "fragments",
+    "crystals",
+    "landscape3",
+    "landscape4",
+    "spring"
+);
+
+html {
+    background: #EEE;
+}
+
+.start {
+    font-family: 'Cookie', cursive;
+    font-size: 1rem;
+    color: #23F3D3;
+}
+
+.lyricsContainer.liquescimus {
+    $card-transition-time: 1;
+    $word-highlight-time: 0.2;
+
+    font-family: 'Cookie', cursive;
+    font-size: 1rem;
+    background: white;
+
+    .card {
+        --card-timers: --fade-in start -#{$card-transition-time} start 0 linear, --background-fade-in start 0 end -#{$card-transition-time} linear, --fade-out end 0 end #{$card-transition-time} linear;
+
+        background: white;
+        color: black;
+        opacity: calc(var(--fade-in));
+
+        &.transparent {
+            background: none;
+        }
+
+        &::before {
+            content: '';
+            display: block;
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+
+            background-size: cover;
+            background-position: center center;
+            background-repeat: no-repeat;
+
+            opacity: var(--background-fade-in);
+        }
+
+        @each $background in $backgrounds {
+            &.#{$background}::before {
+                background-image: url("./#{$background}.jpg");
+            }
+        }
+
+        .contents {
+            height: 100%;
+        }
+
+        .voice {
+            display: block;
+            position: relative;
+            overflow: visible;
+            padding: 0;
+            font-size: 0;
+
+            opacity: calc(1 - var(--fade-out));
+
+            .voiceContents {
+                display: inline-block;
+
+                overflow: hidden;
+                padding: 0.1rem;
+                font-size: 1rem;
+
+                .word {
+                    --word-timers: --highlight start -#{$word-highlight-time} end #{$word-highlight-time} linear linear;
+                    
+                    display: inline-block;
+                    vertical-align: middle;
+
+                    color: hsl(0, 0%, calc(50% - var(--highlight) * 50%));
+                }
+            }
+
+            &.japanese {
+                font-family: 'Noto Serif JP', cursive;
+                writing-mode: vertical-rl;
+                float: right;
+
+                .voiceContents {
+                    height: auto !important;
+
+                    .word {
+                        display: inline;
+                    }
+                }
+            }
+
+            &.latin {
+                float: left;
+                max-width: 60%;
+            }
+
+            &.english {
+                position: absolute;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                text-align: center;
+
+                .voiceContents {
+                    font-size: 1.2rem;
+
+                    .word {
+                        --word-timers: --fade-in start 0 end 0 linear;
+                
+                        opacity: var(--fade-in);
+                    }
+                }
+            }
+        }
+
+        &.instrumental {
+            --card-timers: --fade-in start -#{$card-transition-time} start 0 linear, --progress start 0 end 0 linear;
+
+            &::before {
+                display: block;
+                content: ' ';
+
+                position: absolute;
+                top: 0;
+                left: 0;
+                height: 4px;
+                width: calc(var(--progress) * 100%);
+
+                background: #23F3D3;
+            }
+        }
+    }
+}

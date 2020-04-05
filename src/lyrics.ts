@@ -298,7 +298,14 @@ function parseLyrics(lyricsFile): AST {
     for(let i = 0; i < lyricsFile.length; i++) {
         const char = lyricsFile[i];
         if(isEscaped) {
-            currentWord.contents += char;
+            switch(char) {
+                case "n":
+                    currentWord.contents += "\n";
+                    break;
+                default:
+                    currentWord.contents += char;
+                    break;
+            }
             isEscaped = false;
             continue;
         }
@@ -661,9 +668,9 @@ function layoutLyrics() {
         // It's important to ensure that all voices have the same height, otherwise the separator will move and it will look bad
         const voiceElms = card.voices.map(v => v.voiceElm);
         const voiceContentsElms = card.voices.map(v => v.contentsElm);
-        voiceContentsElms.forEach(voiceElm => voiceElm.style.height = "auto");
-        const voiceHeight = Math.max(...voiceContentsElms.map(voiceElm => voiceElm.getBoundingClientRect().height));
-        voiceContentsElms.forEach(voiceElm => voiceElm.style.height = voiceHeight + "px");
+        card.cardElm.style.setProperty("--max-voice-height", "0");
+        const maxVoiceHeight = Math.max(...voiceContentsElms.map(voiceElm => voiceElm.getBoundingClientRect().height));
+        card.cardElm.style.setProperty("--max-voice-height", "" + maxVoiceHeight);
 
         // Here's some extra data that's used for separator sizing (e.g. etoile et toi)
         const voiceWidths = voiceContentsElms.map(contentsElm => contentsElm.getBoundingClientRect().width);
