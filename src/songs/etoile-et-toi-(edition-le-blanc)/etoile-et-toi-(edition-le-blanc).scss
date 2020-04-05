@@ -48,6 +48,9 @@
                 padding: 0.1rem;
                 font-size: 1rem;
 
+                box-sizing: border-box;
+                min-height: calc(var(--max-voice-height) * 1px);
+
                 .word {
                     --word-timers: --fade-in start 0 start #{$text-movement-time} linear, --lower-in start 0 start #{$text-movement-time} easeOut;
                     

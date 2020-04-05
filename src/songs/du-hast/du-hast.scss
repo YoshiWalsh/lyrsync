@@ -65,6 +65,9 @@
                 margin: 1rem 0;
                 font-size: 1rem;
 
+                box-sizing: border-box;
+                min-height: calc(var(--max-voice-height) * 1px);
+
                 .word {
                     --word-timers: --fade-in start -#{$text-movement-time} start 0 linear, --shrink-in start -#{$text-movement-time} start 0 linear;
                     
