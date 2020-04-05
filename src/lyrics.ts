@@ -298,7 +298,14 @@ function parseLyrics(lyricsFile): AST {
     for(let i = 0; i < lyricsFile.length; i++) {
         const char = lyricsFile[i];
         if(isEscaped) {
-            currentWord.contents += char;
+            switch(char) {
+                case "n":
+                    currentWord.contents += "\n";
+                    break;
+                default:
+                    currentWord.contents += char;
+                    break;
+            }
             isEscaped = false;
             continue;
         }
