@@ -695,7 +695,7 @@ function layoutLyrics() {
             }
         };
         voiceContentsElms.forEach(voiceContentsElm => voiceContentsElm.style.height = voiceHeight + "px");
-        container.style.setProperty("--voice-height", "" + voiceHeight);
+        card.cardElm.style.setProperty("--voice-height", "" + voiceHeight);
         container.classList.remove("layout");
 
         // Here's some extra data that's used for separator sizing (e.g. etoile et toi)
