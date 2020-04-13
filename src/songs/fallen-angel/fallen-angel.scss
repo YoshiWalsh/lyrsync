@@ -19,9 +19,12 @@
 
     $spinner-bpm: 95;
     $spinner-colours: (#FF9AA2, #FFB7B2, #FFDAC1, #E2F0CB, #B5EAD7, #C7CEEA);
-    $spinner-revolution-time: length($spinner-colours) / $spinner-bpm;
+    $spinner-revolution-time: length($spinner-colours) * 60 / $spinner-bpm;
 
     $chorus-rotate-time: 5;
+
+    width: 100vw;
+    height: 100vh;
 
     position: relative;
     font-family: 'Rouge Script', cursive;
@@ -29,23 +32,22 @@
 
     --radius: calc(var(--container-width) / #{$arc-angle});
     --circumference: calc(var(--radius) * $tau);
-    --cue-timers: --spinner start 0 start #{$spinner-revolution-time} linear none none none;
+    --cue-timers: --spinner start.start 0 start.start #{$spinner-revolution-time} linear none none loop;
 
     &::before {
         content: ' ';
         display: block;
 
-        width: 500vw;
-        height: 500vh;
-        min-width: 500vh;
-        min-height: 500vw;
+        width: calc(#{length($spinner-colours) + 1} * 100vw);
+        height: 100vh;
 
-        top: 50%;
-        left: 50%;
+        top: 0;
+        left: 0;
 
-        background: conic-gradient($spinner-colours);
+        background: linear-gradient(to right, $spinner-colours, nth($spinner-colours, 1), nth($spinner-colours, 2));
+        //background-position: calc(calc(var(--spinner) * -100vw * #{length($spinner-colours)})) top;
 
-        transform: translate(-50%, -50%) rotate(calc(var(--spinner) * -1turn));
+        transform: translateX(calc(var(--spinner) * -100vw * #{length($spinner-colours)}));
     }
 
     .card {
@@ -102,29 +104,6 @@
                     transform: translateX(calc(var(--centre-offset) * -1px)) rotate(calc(var(--rotation) + (1 - var(--rotate-in)) * #{$rotate-in-angle} * 1rad));
                 }
             }
-
-            &::after {
-                display: block;
-                content: ' ';
-
-                margin: 0.4rem auto;
-                height: 1px;
-                width: 1px;
-                margin: auto;
-                background: white;
-
-                --separator-width: calc((var(--voice-width) + var(--next-voice-width)) / 2);
-                --previous-separator-width: calc((var(--previous-card-voice-width) + var(--previous-card-next-voice-width)) / 2);
-
-                --current-width: calc(var(--previous-separator-width) + (var(--separator-width) - var(--previous-separator-width)) * var(--separator-glide));
-
-                transform: scaleX(var(--current-width));
-            }
-
-            &:last-child::after {
-                display: none;
-                content: none;
-            }
         }
 
         &.chorus {
@@ -136,13 +115,11 @@
 
             .voice .voiceContents {
                 .word {
-                    --bright-colour: #FFFFFF;
-                    --dim-colour: #888888;
                     --word-timers: --active start 0 end 0 instant instantOut, --fade-in start -0.2 start 0 linear, --fade-out end 0 end 0.5 linear;
 
                     position: relative;
 
-                    color: white;
+                    color: black;
                     opacity: calc(50% + (var(--fade-in) - var(--fade-out)) * 50%);
 
                     /*transform: translateX(calc(var(--centre-offset) * -1px)) rotate(calc(var(--rotation) + (1 - var(--rotate-in) - var(--rotate-out)) * #{$rotate-in-angle} * 1rad));*/
