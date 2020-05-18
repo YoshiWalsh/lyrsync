@@ -17,12 +17,12 @@
     $rotate-in-angle: $tau / 4;
     $rotate-out-angle: $tau / 4;
 
-    $spinner-bpm: 95;
-    $spinner-colours: (#FF9AA2, #FFB7B2, #FFDAC1, #E2F0CB, #B5EAD7, #C7CEEA);
-    $spinner-revolution-time: length($spinner-colours) * 60 / $spinner-bpm;
-
-    $chorus-rotate-time: 5;
-
+    $chorus-rotate-time: 1;
+    $chorus-offset: $chorus-rotate-time * 0.2;
+    $chorus-fade-time: $chorus-rotate-time * 0.8;
+    $chorus-lift-distance: 0.1;
+    $chorus-lift-time: 0.3;
+    
     width: 100vw;
     height: 100vh;
 
@@ -32,23 +32,6 @@
 
     --radius: calc(var(--container-width) / #{$arc-angle});
     --circumference: calc(var(--radius) * $tau);
-    --cue-timers: --spinner start.start 0 start.start #{$spinner-revolution-time} linear none none loop;
-
-    &::before {
-        content: ' ';
-        display: block;
-
-        width: calc(#{length($spinner-colours) + 1} * 100vw);
-        height: 100vh;
-
-        top: 0;
-        left: 0;
-
-        background: linear-gradient(to right, $spinner-colours, nth($spinner-colours, 1), nth($spinner-colours, 2));
-        //background-position: calc(calc(var(--spinner) * -100vw * #{length($spinner-colours)})) top;
-
-        transform: translateX(calc(var(--spinner) * -100vw * #{length($spinner-colours)}));
-    }
 
     .card {
         --card-timers: --fade-in start -#{$text-movement-time} end #{$card-transition-time} instant instantOut, --slow-rotate start -#{$text-movement-time} end #{$card-transition-time} linear, --rotate-out end -#{$card-transition-time} end 0 easeIn;
@@ -107,24 +90,27 @@
         }
 
         &.chorus {
-            --card-timers: --fade-in start -#{$chorus-rotate-time} end #{$chorus-rotate-time} instant instantOut, --chorus-rotate-start start -#{$chorus-rotate-time} start 0 linear none none none, --chorus-rotate-end end 0 end #{$chorus-rotate-time} linear none none none;
+            --card-timers: --rotate-in start #{0 - $chorus-rotate-time + $chorus-offset} start #{$chorus-offset} easeInOut, --rotate-out end #{0 - $chorus-rotate-time + $chorus-offset} end #{$chorus-offset} easeInOut, --fade-in start -#{$chorus-fade-time} start 0 linear, --fade-out end -#{$chorus-fade-time} end 0 linear;
 
             margin-top: 1.5rem;
-            
-            transform: rotate(calc((var(--chorus-rotate-start) + var(--chorus-rotate-end) - 1) * 0.5 * #{$arc-angle} * -1rad));
+
+            transform: none;
+            opacity: calc(var(--fade-in) - var(--fade-out));
 
             .voice .voiceContents {
+                transform-origin: center center;
+                
+                transform: rotate(calc((1 - var(--rotate-in) - var(--rotate-out)) * 0.5turn));
+
                 .word {
-                    --word-timers: --active start 0 end 0 instant instantOut, --fade-in start -0.2 start 0 linear, --fade-out end 0 end 0.5 linear;
+                    --word-timers: --fade-in start -0.2 start 0 linear, --fade-out end 0 end 0.5 linear, --raise start -#{$chorus-lift-time} end #{$chorus-lift-time} easeInOut easeInOut;
 
                     position: relative;
 
-                    color: black;
+                    color: white;
                     opacity: calc(50% + (var(--fade-in) - var(--fade-out)) * 50%);
 
-                    /*transform: translateX(calc(var(--centre-offset) * -1px)) rotate(calc(var(--rotation) + (1 - var(--rotate-in) - var(--rotate-out)) * #{$rotate-in-angle} * 1rad));*/
-                    transform: translateX(calc(var(--centre-offset) * -1px)) rotate(var(--rotation));
-                    /*opacity: calc(0.5 + 0.5 * var(--active));*/
+                    transform: translateY(calc(var(--raise) * -1rem * #{$chorus-lift-distance}));
                 }
             }
         }
