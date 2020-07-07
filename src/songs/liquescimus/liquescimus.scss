@@ -114,7 +114,7 @@ html {
 
             &.latin {
                 float: left;
-                max-width: 60%;
+                max-width: calc(100% - 3rem);
             }
 
             &.english {
