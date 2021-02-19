@@ -1,0 +1,87 @@
+@import url('https://fonts.googleapis.com/css?family=Righteous&display=block');
+
+.start {
+    font-family: 'Righteous', cursive;
+    font-size: 1rem;
+}
+
+.lyricsContainer.\32 992 {
+    $text-movement-distance: 0.5em;
+    $text-movement-time: 0.4;
+    $text-pulse-time: 1;
+    $card-transition-time: 0.5;
+
+    font-family: 'Righteous', cursive;
+    font-size: 1rem;
+
+    .card {
+        --card-timers: --fade-out end -#{$card-transition-time} end 0 linear;
+
+        opacity: calc(1 - var(--fade-out));
+
+        line-height: 1.75rem;
+
+        .contents {
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            transform: translateY(-50%);
+            text-align: center;
+        }
+
+        .voice {
+            display: block;
+            overflow: visible;
+            padding: 0 10%;
+            font-size: 0;
+
+            .voiceContents {
+                display: inline-block;
+
+                overflow: hidden;
+                padding: 0.1rem;
+                font-size: 1rem;
+
+                box-sizing: border-box;
+                min-height: calc(var(--max-voice-height) * 1px);
+
+                .word {
+                    --word-timers: --lower-in start -#{$text-movement-time} start 0 linear, --pulse-in start 0 start 1 instant, --pulse-out start 0 start #{$text-pulse-time} linear;
+                    --movement-direction: 1;
+
+                    display: inline-block;
+                    vertical-align: middle;
+            
+                    opacity: calc(0.5 * var(--lower-in) + (var(--pulse-in) - var(--pulse-out)) * 0.5);
+                    transform: translateY(calc((1 - var(--lower-in)) * var(--movement-direction) * #{$text-movement-distance}));
+
+                    &:nth-child(even) {
+                        --movement-direction: -1;
+                    }
+
+                    &.emphasis {
+                        color: #DDDDFF;
+                    }
+                }
+            }
+        }
+
+        &.instrumental {
+            --card-timers: --fade-out end -#{$card-transition-time} end 0 linear, --progress start 0 end 0 linear;
+
+            &::before {
+                display: block;
+                content: ' ';
+
+                position: absolute;
+                top: 0;
+                left: 0;
+                height: 4px;
+                width: calc(var(--progress) * 100%);
+
+                background: white;
+            }
+        }
+    }
+}

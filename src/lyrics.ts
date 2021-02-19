@@ -440,6 +440,9 @@ function parseLyrics(lyricsFile): AST {
     }
 
     if(currentWord.timecode !== null && currentWord.contents) {
+        if(!currentCard.voices[currentVoice]) {
+            currentCard.voices[currentVoice] = [];
+        }
         currentCard.voices[currentVoice].push(currentWord);
     }
 
