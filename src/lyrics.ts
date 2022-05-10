@@ -416,6 +416,7 @@ function parseLyrics(lyricsFile): AST {
                                 } else {
                                     console.warn("Attempt to create a cue of type '" + cueName + "' with no start/end time");
                                 }
+                                break;
                             default:
                                 // Unrecognised tag
                                 break;
