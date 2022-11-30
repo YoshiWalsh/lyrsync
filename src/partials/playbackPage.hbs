@@ -1,52 +1,55 @@
 <!DOCTYPE html>
 <html>
-    <head>
-        <meta charset="UTF-8" />
-        <title>{{title}}</title>
-        <link rel="stylesheet" type="text/css" href="/playback.scss" />
-        <link rel="stylesheet" type="text/css" href="/songs/{{name}}/{{name}}.scss" />
-        <link rel="preload" as="fetch" href="/songs/{{name}}/{{name}}.lrc" class="lyricsFile" crossOrigin="anonymous"  />
-    </head>
-    <body>
-        <div class="start" style="display: none; z-index: 1;">
-            [Click to start]
+
+<head>
+    <meta charset="UTF-8" />
+    <title>{{title}}</title>
+    <link rel="stylesheet" type="text/css" href="/playback.scss" />
+    <link rel="stylesheet" type="text/css" href="/songs/{{name}}/{{name}}.scss" />
+    <link rel="preload" as="fetch" href="/songs/{{name}}/{{name}}.lrc" class="lyricsFile" crossOrigin="anonymous" />
+</head>
+
+<body>
+    <div class="start" style="display: none; z-index: 1;">
+        [Click to start]
+    </div>
+    <div class="container" style="opacity: 0">
+        <div class="lyricsContainer {{name}}"></div>
+        <div class="playerContainer">
+            <div class="player" data-media-url="{{mediaUrl}}"></div>
         </div>
-        <div class="container" style="opacity: 0">
-            <div class="lyricsContainer {{name}}"></div>
-            <div class="playerContainer">
-                <div class="player" data-media-url="{{mediaUrl}}"></div>
-            </div>
-            <div class="controls">
-                <div class="timeline"></div>
-                <div class="buttons">
-                    <button type="button" class="playPause">
-                        <div class="icon play"></div>
-                        <div class="icon pause"></div>
+        <div class="controls">
+            <div class="timeline"></div>
+            <div class="buttons">
+                <button type="button" class="playPause">
+                    <div class="icon play"></div>
+                    <div class="icon pause"></div>
+                </button>
+                <div class="rightCluster">
+                    <button type="button" class="volume">
+                        <div class="icon unmuted"></div>
+                        <div class="icon muted"></div>
+                        <div class="volumeSliderContainer">
+                            <div class="volumeSlider"></div>
+                        </div>
                     </button>
-                    <div class="rightCluster">
-                        <button type="button" class="volume">
-                            <div class="icon unmuted"></div>
-                            <div class="icon muted"></div>
-                            <div class="volumeSliderContainer">
-                                <div class="volumeSlider"></div>
-                            </div>
-                        </button>
-                        <button type="button" class="fullscreen">
-                            <div class="icon enter"></div>
-                            <div class="icon exit"></div>
-                        </button>
-                    </div>
+                    <button type="button" class="fullscreen">
+                        <div class="icon enter"></div>
+                        <div class="icon exit"></div>
+                    </button>
                 </div>
             </div>
         </div>
-        <a class="back" href="/"></a>
-        <script type="text/javascript">
-            var tag = document.createElement('script');
-            tag.src = "https://www.youtube.com/iframe_api";
-            var firstScriptTag = document.getElementsByTagName('script')[0];
-            firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
-        </script>
-        <script type="text/javascript" src="/popcorn-package.ts"></script>
-        <script type="text/javascript" src="/lyrics.ts"></script>
-    </body>
+    </div>
+    <a class="back" href="/"></a>
+    <script type="text/javascript">
+        var tag = document.createElement('script');
+        tag.src = "https://www.youtube.com/iframe_api";
+        var firstScriptTag = document.getElementsByTagName('script')[0];
+        firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+    </script>
+    <script type="text/javascript" src="/popcorn-package.ts"></script>
+    <script type="text/javascript" src="/lyrics.ts"></script>
+</body>
+
 </html>
