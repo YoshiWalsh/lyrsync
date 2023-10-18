@@ -20,6 +20,7 @@
     $spinner-bpm: 95;
     $spinner-colours: (#EDE189, #C1817F, #849FCC, #F4C1DB);
     $spinner-revolution-time: length($spinner-colours) * 60 / $spinner-bpm;
+    $rock-time: 4 * 60 / $spinner-bpm;
 
     $chorus-rotate-time: 1;
     $chorus-offset: $chorus-rotate-time * 0.2;
@@ -36,7 +37,7 @@
 
     --radius: calc(var(--container-width) / #{$arc-angle});
     --circumference: calc(var(--radius) * $tau);
-    --cue-timers: --spinner start.start 0 start.start #{$spinner-revolution-time} linear none none loop;
+    --cue-timers: --spinner start.start 0 start.start #{$spinner-revolution-time} linear none none loop, --rock start.start 0 start.start #{$rock-time} easeInOut easeInOut none loop;
 
     &::before {
         content: ' ';
@@ -139,16 +140,31 @@
         }
 
         &.instrumental {
-            --card-timers: --fade-in start -#{$card-transition-time} start 0 linear, --progress start 0 end 0 linear;
+            --card-timers: --fade-in start -#{$card-transition-time} start 0 linear, --fade-out end -#{$card-transition-time} end 0 linear, --progress start 0 end 0 linear;
+
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            height: 10px;
+
+            margin-top: 0;
+            width: 30%;
+
+            border: 1px solid white;
+
+            transform: translate(-50%, -50%) rotate(calc(1deg * (var(--rock) - 0.5) * 2));
+            transform-origin: 50% 50%;
+
+            opacity: calc(var(--fade-in) * (1 - var(--fade-out)));
 
             &::before {
                 display: block;
                 content: ' ';
 
                 position: absolute;
-                top: 0;
-                left: 0;
-                height: 4px;
+                top: 0%;
+                left: 0%;
+                height: 100%;
                 width: calc(var(--progress) * 100%);
 
                 background: white;
