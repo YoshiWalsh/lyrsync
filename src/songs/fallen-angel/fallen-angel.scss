@@ -18,7 +18,7 @@
     $rotate-out-angle: $tau / 4;
 
     $spinner-bpm: 95;
-    $spinner-colours: (#EDE189, #C1817F, #849FCC, #F4C1DB);
+    $spinner-colours: (#DDD390, #C1817F, #849FCC, #CCA5B9);
     $spinner-revolution-time: length($spinner-colours) * 60 / $spinner-bpm;
     $rock-time: 4 * 60 / $spinner-bpm;
 
