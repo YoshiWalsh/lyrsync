@@ -24,9 +24,9 @@ function init() {
         response.text().then(responseText => {
             lyricsAst = parseLyrics(responseText);
             renderedLyrics = renderLyrics();
-            layoutLyrics();
             playerPromise.then(player => {
                 document.fonts.ready.then(() => {
+                    layoutLyrics();
                     initialised = true;
                     const start = document.querySelector<HTMLDivElement>(".start");
                     start.style.display = "block";
