@@ -24,183 +24,187 @@ function init() {
             renderedLyrics = renderLyrics();
             layoutLyrics();
             playerPromise.then(player => {
-                initialised = true;
-                const start = document.querySelector<HTMLDivElement>(".start");
-                start.style.display = "block";
-                const begin = () => {
-                    const duration = player.duration();
-                    start.style.display = "none";
-                    window['player'] = player; // useful for debugging
-                    const container = document.querySelector<HTMLDivElement>(".container");
-                    container.style.opacity = '1';
+                document.fonts.ready.then(() => {
 
-                    // Set up controls
-                    const controls = document.querySelector<HTMLDivElement>(".controls");
-                    const timeline = document.querySelector<HTMLDivElement>(".timeline");
-                    const playPause = controls.querySelector<HTMLButtonElement>("button.playPause");
-                    const volume = controls.querySelector<HTMLButtonElement>("button.volume");
-                    const volumeSliderContainer = controls.querySelector<HTMLButtonElement>("button.volume .volumeSliderContainer");
-                    const volumeSlider = controls.querySelector<HTMLButtonElement>("button.volume .volumeSlider");
-                    const fullscreenToggle = controls.querySelector<HTMLButtonElement>("button.fullscreen");
+                    initialised = true;
+                    const start = document.querySelector<HTMLDivElement>(".start");
+                    start.style.display = "block";
+                    const begin = () => {
+                        const duration = player.duration();
+                        start.style.display = "none";
+                        window['player'] = player; // useful for debugging
+                        const container = document.querySelector<HTMLDivElement>(".container");
+                        container.style.opacity = '1';
 
-                    let playing = false;
-                    let muted = player.muted();
-                    let hideControlsTimeout = null;
-                    volumeSlider.style.setProperty("--volume", player.volume());
+                        // Set up controls
+                        const controls = document.querySelector<HTMLDivElement>(".controls");
+                        const timeline = document.querySelector<HTMLDivElement>(".timeline");
+                        const playPause = controls.querySelector<HTMLButtonElement>("button.playPause");
+                        const volume = controls.querySelector<HTMLButtonElement>("button.volume");
+                        const volumeSliderContainer = controls.querySelector<HTMLButtonElement>("button.volume .volumeSliderContainer");
+                        const volumeSlider = controls.querySelector<HTMLButtonElement>("button.volume .volumeSlider");
+                        const fullscreenToggle = controls.querySelector<HTMLButtonElement>("button.fullscreen");
 
-                    playPause.addEventListener("click", () => {
-                        playing ? player.pause() : player.play();
-                    });
-                    container.addEventListener("click", () => {
-                        playing ? player.pause() : player.play();
-                    });
-
-                    controls.addEventListener("click", (evt) => {
-                        evt.stopPropagation();
-                    });
-                    volumeSliderContainer.addEventListener("click", (evt) => {
-                        evt.stopPropagation();
-                    });
-                    let adjustingVolume = false;
-                    volumeSlider.addEventListener("mousedown", (evt) => {
-                        adjustingVolume = true;
-                        adjustVolume(evt);
-                        volume.classList.add("adjusting");
-                    });
-
-                    const adjustVolume = (evt: MouseEvent) => {
-                        const volumeSliderLocation = volumeSlider.getBoundingClientRect();
-                        const desiredVolume = clamp(unlerp(evt.clientY, volumeSliderLocation.top + volumeSliderLocation.height, volumeSliderLocation.top));
-                        player.volume(desiredVolume);
-                    }
-
-                    volume.addEventListener("click", () => {
-                        muted ? player.unmute() : player.mute();
-                    });
-
-                    fullscreenToggle.addEventListener("click", () => {
-                        document.fullscreenElement === container ? document.exitFullscreen() : container.requestFullscreen({ navigationUI: "hide" });
-                    });
-
-                    let seeking = false;
-                    let playingBeforeSeek = false;
-                    timeline.addEventListener("mousedown", (evt) => {
-                        controls.classList.add("seeking");
-                        playingBeforeSeek = playing;
-                        seeking = true;
-                        seek(evt);
-                    });
-
-                    container.addEventListener("mouseup", (evt) => {
-                        if(seeking) {
-                            seek(evt);
-                            seeking = false;
-                            if(playingBeforeSeek) {
-                                player.play();
-                                playPause.classList.add("playing");
-                                playing = true;
-
-                                // Sometimes Popcorn.js doesn't realise the video is playing again, I think it's a race condition.
-                                // If this happens, the currentTime() function loses accuracy. In order to prevent this, we'll remind Popcorn that it's playing after a little bit.
-                                window.setTimeout(() => {
-                                    if(playing) {
-                                        player.play();
-                                    }
-                                }, 500);
-                            }
-                            controls.classList.remove("seeking");
-                        }
-                        if(adjustingVolume) {
-                            adjustVolume(evt);
-                            adjustingVolume = false;
-                            volume.classList.remove("adjusting");
-                        }
-                    });
-
-                    const seek = (evt: MouseEvent) => {
-                        const timelineLocation = timeline.getBoundingClientRect();
-                        const desiredTime = lerp(clamp(unlerp(evt.clientX, timelineLocation.left, timelineLocation.left + timelineLocation.width)), 0, duration);
-                        player.pause(desiredTime);
-                    }
-
-                    const updateTimeline = () => {
-                        timeline.style.setProperty("--progress", "" + (currentTime / player.duration()));
-                        window.requestAnimationFrame(updateTimeline);
-                    }
-                    window.requestAnimationFrame(updateTimeline);
-
-                    container.addEventListener("mousemove", (evt) => {
-                        controls.classList.add("active");
-                        if(hideControlsTimeout) {
-                            window.clearTimeout(hideControlsTimeout);
-                        }
-                        hideControlsTimeout = window.setTimeout(() => {
-                            controls.classList.remove("active");
-                            hideControlsTimeout = null;
-                        }, 1000);
-
-                        if(seeking) {
-                            seek(evt);
-                        }
-                        if(adjustingVolume) {
-                            adjustVolume(evt);
-                        }
-                    })
-
-                    player.on("play", () => {
-                        playPause.classList.add("playing");
-                        playing = true;
-                    });
-                    player.on("pause", () => {
-                        playPause.classList.remove("playing");
-                        playing = false;
-                    });
-
-                    player.on("volumechange", () => {
-                        muted = player.muted();
-                        volume.classList.toggle("muted", muted);
+                        let playing = false;
+                        let muted = player.muted();
+                        let hideControlsTimeout = null;
                         volumeSlider.style.setProperty("--volume", player.volume());
-                    });
 
-                    document.addEventListener("fullscreenchange", () => {
-                        fullscreenToggle.classList.toggle("active", document.fullscreenElement === container);
-                    });
+                        playPause.addEventListener("click", () => {
+                            playing ? player.pause() : player.play();
+                        });
+                        container.addEventListener("click", () => {
+                            playing ? player.pause() : player.play();
+                        });
 
-                    document.addEventListener("keydown", (evt) => {
-                        switch(evt.key) {
-                            case "ArrowLeft":
-                            case "ArrowRight":
-                                const direction = evt.key == "ArrowRight" ? 1 : -1;
-                                const magnitude = evt.ctrlKey ? 10 : 5;
-                                const desiredTime = clamp(player.currentTime() + direction * magnitude, 0, duration);
-                                playing ? player.play(desiredTime) : player.pause(desiredTime);
-                                evt.preventDefault();
-                                evt.stopPropagation();
-                                break;
-                            case "ArrowUp":
-                            case "ArrowDown":
-                                player.volume(clamp(player.volume() + 0.05 * (evt.key == "ArrowUp" ? 1 : -1)));
-                                break;
-                            case " ":
-                                playing ? player.pause() : player.play();
-                                evt.preventDefault();
-                                evt.stopPropagation();
-                                break;
-                            default:
-                                break;
+                        controls.addEventListener("click", (evt) => {
+                            evt.stopPropagation();
+                        });
+                        volumeSliderContainer.addEventListener("click", (evt) => {
+                            evt.stopPropagation();
+                        });
+                        let adjustingVolume = false;
+                        volumeSlider.addEventListener("mousedown", (evt) => {
+                            adjustingVolume = true;
+                            adjustVolume(evt);
+                            volume.classList.add("adjusting");
+                        });
+
+                        const adjustVolume = (evt: MouseEvent) => {
+                            const volumeSliderLocation = volumeSlider.getBoundingClientRect();
+                            const desiredVolume = clamp(unlerp(evt.clientY, volumeSliderLocation.top + volumeSliderLocation.height, volumeSliderLocation.top));
+                            player.volume(desiredVolume);
                         }
-                    });
 
-                    player.play();
-                };
-                start.addEventListener("click", begin);
-                const startKeyListener = (evt) => {
-                    if(evt.key === " ") {
-                        window.removeEventListener("keydown", startKeyListener);
-                        begin();
-                    }
-                };
-                window.addEventListener("keydown", startKeyListener);
+                        volume.addEventListener("click", () => {
+                            muted ? player.unmute() : player.mute();
+                        });
+
+                        fullscreenToggle.addEventListener("click", () => {
+                            document.fullscreenElement === container ? document.exitFullscreen() : container.requestFullscreen({ navigationUI: "hide" });
+                        });
+
+                        let seeking = false;
+                        let playingBeforeSeek = false;
+                        timeline.addEventListener("mousedown", (evt) => {
+                            controls.classList.add("seeking");
+                            playingBeforeSeek = playing;
+                            seeking = true;
+                            seek(evt);
+                        });
+
+                        container.addEventListener("mouseup", (evt) => {
+                            if(seeking) {
+                                seek(evt);
+                                seeking = false;
+                                if(playingBeforeSeek) {
+                                    player.play();
+                                    playPause.classList.add("playing");
+                                    playing = true;
+
+                                    // Sometimes Popcorn.js doesn't realise the video is playing again, I think it's a race condition.
+                                    // If this happens, the currentTime() function loses accuracy. In order to prevent this, we'll remind Popcorn that it's playing after a little bit.
+                                    window.setTimeout(() => {
+                                        if(playing) {
+                                            player.play();
+                                        }
+                                    }, 500);
+                                }
+                                controls.classList.remove("seeking");
+                            }
+                            if(adjustingVolume) {
+                                adjustVolume(evt);
+                                adjustingVolume = false;
+                                volume.classList.remove("adjusting");
+                            }
+                        });
+
+                        const seek = (evt: MouseEvent) => {
+                            const timelineLocation = timeline.getBoundingClientRect();
+                            const desiredTime = lerp(clamp(unlerp(evt.clientX, timelineLocation.left, timelineLocation.left + timelineLocation.width)), 0, duration);
+                            player.pause(desiredTime);
+                        }
+
+                        const updateTimeline = () => {
+                            timeline.style.setProperty("--progress", "" + (currentTime / player.duration()));
+                            window.requestAnimationFrame(updateTimeline);
+                        }
+                        window.requestAnimationFrame(updateTimeline);
+
+                        container.addEventListener("mousemove", (evt) => {
+                            controls.classList.add("active");
+                            if(hideControlsTimeout) {
+                                window.clearTimeout(hideControlsTimeout);
+                            }
+                            hideControlsTimeout = window.setTimeout(() => {
+                                controls.classList.remove("active");
+                                hideControlsTimeout = null;
+                            }, 1000);
+
+                            if(seeking) {
+                                seek(evt);
+                            }
+                            if(adjustingVolume) {
+                                adjustVolume(evt);
+                            }
+                        })
+
+                        player.on("play", () => {
+                            playPause.classList.add("playing");
+                            playing = true;
+                        });
+                        player.on("pause", () => {
+                            playPause.classList.remove("playing");
+                            playing = false;
+                        });
+
+                        player.on("volumechange", () => {
+                            muted = player.muted();
+                            volume.classList.toggle("muted", muted);
+                            volumeSlider.style.setProperty("--volume", player.volume());
+                        });
+
+                        document.addEventListener("fullscreenchange", () => {
+                            fullscreenToggle.classList.toggle("active", document.fullscreenElement === container);
+                        });
+
+                        document.addEventListener("keydown", (evt) => {
+                            switch(evt.key) {
+                                case "ArrowLeft":
+                                case "ArrowRight":
+                                    const direction = evt.key == "ArrowRight" ? 1 : -1;
+                                    const magnitude = evt.ctrlKey ? 10 : 5;
+                                    const desiredTime = clamp(player.currentTime() + direction * magnitude, 0, duration);
+                                    playing ? player.play(desiredTime) : player.pause(desiredTime);
+                                    evt.preventDefault();
+                                    evt.stopPropagation();
+                                    break;
+                                case "ArrowUp":
+                                case "ArrowDown":
+                                    player.volume(clamp(player.volume() + 0.05 * (evt.key == "ArrowUp" ? 1 : -1)));
+                                    break;
+                                case " ":
+                                    playing ? player.pause() : player.play();
+                                    evt.preventDefault();
+                                    evt.stopPropagation();
+                                    break;
+                                default:
+                                    break;
+                            }
+                        });
+
+                        player.play();
+                    };
+                    
+                    start.addEventListener("click", begin);
+                    const startKeyListener = (evt) => {
+                        if(evt.key === " ") {
+                            window.removeEventListener("keydown", startKeyListener);
+                            begin();
+                        }
+                    };
+                    window.addEventListener("keydown", startKeyListener);
+                });
             });
         }, err => {
             console.error("Failed to retrieve lyrics", err);
