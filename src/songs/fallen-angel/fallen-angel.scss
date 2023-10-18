@@ -71,6 +71,8 @@
                 padding: 0.1rem;
                 font-size: 1rem;
 
+                white-space: nowrap;
+
                 --voice-radius: calc(var(--radius) - var(--voice-contents-top-within-card) + var(--container-height) / 2);
 
                 .word {
