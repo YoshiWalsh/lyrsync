@@ -7,6 +7,7 @@ let initialised = false;
 const lerp = (x: number, min: number, max: number) => min*(1-x)+max*x;
 const unlerp = (x: number, min: number, max: number) => (x-min) / (max-min);
 const clamp = (x: number, min?: number, max?: number) => Math.min(Math.max(x, min || 0), max || 1);
+const mod = (x: number, y: number) => ((x%y)+y)%y;
 
 let lyricsAst: AST;
 let renderedLyrics: RenderedLyrics;
@@ -25,183 +26,186 @@ function init() {
             renderedLyrics = renderLyrics();
             layoutLyrics();
             playerPromise.then(player => {
-                initialised = true;
-                const start = document.querySelector<HTMLDivElement>(".start");
-                start.style.display = "block";
-                const begin = () => {
-                    const duration = player.duration();
-                    start.style.display = "none";
-                    window['player'] = player; // useful for debugging
-                    const container = document.querySelector<HTMLDivElement>(".container");
-                    container.style.opacity = '1';
+                document.fonts.ready.then(() => {
+                    initialised = true;
+                    const start = document.querySelector<HTMLDivElement>(".start");
+                    start.style.display = "block";
+                    const begin = () => {
+                        const duration = player.duration();
+                        start.style.display = "none";
+                        window['player'] = player; // useful for debugging
+                        const container = document.querySelector<HTMLDivElement>(".container");
+                        container.style.opacity = '1';
 
-                    // Set up controls
-                    const controls = document.querySelector<HTMLDivElement>(".controls");
-                    const timeline = document.querySelector<HTMLDivElement>(".timeline");
-                    const playPause = controls.querySelector<HTMLButtonElement>("button.playPause");
-                    const volume = controls.querySelector<HTMLButtonElement>("button.volume");
-                    const volumeSliderContainer = controls.querySelector<HTMLButtonElement>("button.volume .volumeSliderContainer");
-                    const volumeSlider = controls.querySelector<HTMLButtonElement>("button.volume .volumeSlider");
-                    const fullscreenToggle = controls.querySelector<HTMLButtonElement>("button.fullscreen");
+                        // Set up controls
+                        const controls = document.querySelector<HTMLDivElement>(".controls");
+                        const timeline = document.querySelector<HTMLDivElement>(".timeline");
+                        const playPause = controls.querySelector<HTMLButtonElement>("button.playPause");
+                        const volume = controls.querySelector<HTMLButtonElement>("button.volume");
+                        const volumeSliderContainer = controls.querySelector<HTMLButtonElement>("button.volume .volumeSliderContainer");
+                        const volumeSlider = controls.querySelector<HTMLButtonElement>("button.volume .volumeSlider");
+                        const fullscreenToggle = controls.querySelector<HTMLButtonElement>("button.fullscreen");
 
-                    let playing = false;
-                    let muted = player.muted();
-                    let hideControlsTimeout = null;
-                    volumeSlider.style.setProperty("--volume", player.volume());
-
-                    playPause.addEventListener("click", () => {
-                        playing ? player.pause() : player.play();
-                    });
-                    container.addEventListener("click", () => {
-                        playing ? player.pause() : player.play();
-                    });
-
-                    controls.addEventListener("click", (evt) => {
-                        evt.stopPropagation();
-                    });
-                    volumeSliderContainer.addEventListener("click", (evt) => {
-                        evt.stopPropagation();
-                    });
-                    let adjustingVolume = false;
-                    volumeSlider.addEventListener("mousedown", (evt) => {
-                        adjustingVolume = true;
-                        adjustVolume(evt);
-                        volume.classList.add("adjusting");
-                    });
-
-                    const adjustVolume = (evt: MouseEvent) => {
-                        const volumeSliderLocation = volumeSlider.getBoundingClientRect();
-                        const desiredVolume = clamp(unlerp(evt.clientY, volumeSliderLocation.top + volumeSliderLocation.height, volumeSliderLocation.top));
-                        player.volume(desiredVolume);
-                    }
-
-                    volume.addEventListener("click", () => {
-                        muted ? player.unmute() : player.mute();
-                    });
-
-                    fullscreenToggle.addEventListener("click", () => {
-                        document.fullscreenElement === container ? document.exitFullscreen() : container.requestFullscreen({ navigationUI: "hide" });
-                    });
-
-                    let seeking = false;
-                    let playingBeforeSeek = false;
-                    timeline.addEventListener("mousedown", (evt) => {
-                        controls.classList.add("seeking");
-                        playingBeforeSeek = playing;
-                        seeking = true;
-                        seek(evt);
-                    });
-
-                    container.addEventListener("mouseup", (evt) => {
-                        if(seeking) {
-                            seek(evt);
-                            seeking = false;
-                            if(playingBeforeSeek) {
-                                player.play();
-                                playPause.classList.add("playing");
-                                playing = true;
-
-                                // Sometimes Popcorn.js doesn't realise the video is playing again, I think it's a race condition.
-                                // If this happens, the currentTime() function loses accuracy. In order to prevent this, we'll remind Popcorn that it's playing after a little bit.
-                                window.setTimeout(() => {
-                                    if(playing) {
-                                        player.play();
-                                    }
-                                }, 500);
-                            }
-                            controls.classList.remove("seeking");
-                        }
-                        if(adjustingVolume) {
-                            adjustVolume(evt);
-                            adjustingVolume = false;
-                            volume.classList.remove("adjusting");
-                        }
-                    });
-
-                    const seek = (evt: MouseEvent) => {
-                        const timelineLocation = timeline.getBoundingClientRect();
-                        const desiredTime = lerp(clamp(unlerp(evt.clientX, timelineLocation.left, timelineLocation.left + timelineLocation.width)), 0, duration);
-                        player.pause(desiredTime);
-                    }
-
-                    const updateTimeline = () => {
-                        timeline.style.setProperty("--progress", "" + (currentTime / player.duration()));
-                        window.requestAnimationFrame(updateTimeline);
-                    }
-                    window.requestAnimationFrame(updateTimeline);
-
-                    container.addEventListener("mousemove", (evt) => {
-                        controls.classList.add("active");
-                        if(hideControlsTimeout) {
-                            window.clearTimeout(hideControlsTimeout);
-                        }
-                        hideControlsTimeout = window.setTimeout(() => {
-                            controls.classList.remove("active");
-                            hideControlsTimeout = null;
-                        }, 1000);
-
-                        if(seeking) {
-                            seek(evt);
-                        }
-                        if(adjustingVolume) {
-                            adjustVolume(evt);
-                        }
-                    })
-
-                    player.on("play", () => {
-                        playPause.classList.add("playing");
-                        playing = true;
-                    });
-                    player.on("pause", () => {
-                        playPause.classList.remove("playing");
-                        playing = false;
-                    });
-
-                    player.on("volumechange", () => {
-                        muted = player.muted();
-                        volume.classList.toggle("muted", muted);
+                        let playing = false;
+                        let muted = player.muted();
+                        let hideControlsTimeout = null;
                         volumeSlider.style.setProperty("--volume", player.volume());
-                    });
 
-                    document.addEventListener("fullscreenchange", () => {
-                        fullscreenToggle.classList.toggle("active", document.fullscreenElement === container);
-                    });
+                        playPause.addEventListener("click", () => {
+                            playing ? player.pause() : player.play();
+                        });
+                        container.addEventListener("click", () => {
+                            playing ? player.pause() : player.play();
+                        });
 
-                    document.addEventListener("keydown", (evt) => {
-                        switch(evt.key) {
-                            case "ArrowLeft":
-                            case "ArrowRight":
-                                const direction = evt.key == "ArrowRight" ? 1 : -1;
-                                const magnitude = evt.ctrlKey ? 10 : 5;
-                                const desiredTime = clamp(player.currentTime() + direction * magnitude, 0, duration);
-                                playing ? player.play(desiredTime) : player.pause(desiredTime);
-                                evt.preventDefault();
-                                evt.stopPropagation();
-                                break;
-                            case "ArrowUp":
-                            case "ArrowDown":
-                                player.volume(clamp(player.volume() + 0.05 * (evt.key == "ArrowUp" ? 1 : -1)));
-                                break;
-                            case " ":
-                                playing ? player.pause() : player.play();
-                                evt.preventDefault();
-                                evt.stopPropagation();
-                                break;
-                            default:
-                                break;
+                        controls.addEventListener("click", (evt) => {
+                            evt.stopPropagation();
+                        });
+                        volumeSliderContainer.addEventListener("click", (evt) => {
+                            evt.stopPropagation();
+                        });
+                        let adjustingVolume = false;
+                        volumeSlider.addEventListener("mousedown", (evt) => {
+                            adjustingVolume = true;
+                            adjustVolume(evt);
+                            volume.classList.add("adjusting");
+                        });
+
+                        const adjustVolume = (evt: MouseEvent) => {
+                            const volumeSliderLocation = volumeSlider.getBoundingClientRect();
+                            const desiredVolume = clamp(unlerp(evt.clientY, volumeSliderLocation.top + volumeSliderLocation.height, volumeSliderLocation.top));
+                            player.volume(desiredVolume);
                         }
-                    });
 
-                    player.play();
-                };
-                start.addEventListener("click", begin);
-                const startKeyListener = (evt) => {
-                    if(evt.key === " ") {
-                        window.removeEventListener("keydown", startKeyListener);
-                        begin();
-                    }
-                };
-                window.addEventListener("keydown", startKeyListener);
+                        volume.addEventListener("click", () => {
+                            muted ? player.unmute() : player.mute();
+                        });
+
+                        fullscreenToggle.addEventListener("click", () => {
+                            document.fullscreenElement === container ? document.exitFullscreen() : container.requestFullscreen({ navigationUI: "hide" });
+                        });
+
+                        let seeking = false;
+                        let playingBeforeSeek = false;
+                        timeline.addEventListener("mousedown", (evt) => {
+                            controls.classList.add("seeking");
+                            playingBeforeSeek = playing;
+                            seeking = true;
+                            seek(evt);
+                        });
+
+                        container.addEventListener("mouseup", (evt) => {
+                            if(seeking) {
+                                seek(evt);
+                                seeking = false;
+                                if(playingBeforeSeek) {
+                                    player.play();
+                                    playPause.classList.add("playing");
+                                    playing = true;
+
+                                    // Sometimes Popcorn.js doesn't realise the video is playing again, I think it's a race condition.
+                                    // If this happens, the currentTime() function loses accuracy. In order to prevent this, we'll remind Popcorn that it's playing after a little bit.
+                                    window.setTimeout(() => {
+                                        if(playing) {
+                                            player.play();
+                                        }
+                                    }, 500);
+                                }
+                                controls.classList.remove("seeking");
+                            }
+                            if(adjustingVolume) {
+                                adjustVolume(evt);
+                                adjustingVolume = false;
+                                volume.classList.remove("adjusting");
+                            }
+                        });
+
+                        const seek = (evt: MouseEvent) => {
+                            const timelineLocation = timeline.getBoundingClientRect();
+                            const desiredTime = lerp(clamp(unlerp(evt.clientX, timelineLocation.left, timelineLocation.left + timelineLocation.width)), 0, duration);
+                            player.pause(desiredTime);
+                        }
+
+                        const updateTimeline = () => {
+                            timeline.style.setProperty("--progress", "" + (currentTime / player.duration()));
+                            window.requestAnimationFrame(updateTimeline);
+                        }
+                        window.requestAnimationFrame(updateTimeline);
+
+                        container.addEventListener("mousemove", (evt) => {
+                            controls.classList.add("active");
+                            if(hideControlsTimeout) {
+                                window.clearTimeout(hideControlsTimeout);
+                            }
+                            hideControlsTimeout = window.setTimeout(() => {
+                                controls.classList.remove("active");
+                                hideControlsTimeout = null;
+                            }, 1000);
+
+                            if(seeking) {
+                                seek(evt);
+                            }
+                            if(adjustingVolume) {
+                                adjustVolume(evt);
+                            }
+                        })
+
+                        player.on("play", () => {
+                            playPause.classList.add("playing");
+                            playing = true;
+                        });
+                        player.on("pause", () => {
+                            playPause.classList.remove("playing");
+                            playing = false;
+                        });
+
+                        player.on("volumechange", () => {
+                            muted = player.muted();
+                            volume.classList.toggle("muted", muted);
+                            volumeSlider.style.setProperty("--volume", player.volume());
+                        });
+
+                        document.addEventListener("fullscreenchange", () => {
+                            fullscreenToggle.classList.toggle("active", document.fullscreenElement === container);
+                        });
+
+                        document.addEventListener("keydown", (evt) => {
+                            switch(evt.key) {
+                                case "ArrowLeft":
+                                case "ArrowRight":
+                                    const direction = evt.key == "ArrowRight" ? 1 : -1;
+                                    const magnitude = evt.ctrlKey ? 10 : 5;
+                                    const desiredTime = clamp(player.currentTime() + direction * magnitude, 0, duration);
+                                    playing ? player.play(desiredTime) : player.pause(desiredTime);
+                                    evt.preventDefault();
+                                    evt.stopPropagation();
+                                    break;
+                                case "ArrowUp":
+                                case "ArrowDown":
+                                    player.volume(clamp(player.volume() + 0.05 * (evt.key == "ArrowUp" ? 1 : -1)));
+                                    break;
+                                case " ":
+                                    playing ? player.pause() : player.play();
+                                    evt.preventDefault();
+                                    evt.stopPropagation();
+                                    break;
+                                default:
+                                    break;
+                            }
+                        });
+
+                        player.play();
+                    };
+                    
+                    start.addEventListener("click", begin);
+                    const startKeyListener = (evt) => {
+                        if(evt.key === " ") {
+                            window.removeEventListener("keydown", startKeyListener);
+                            begin();
+                        }
+                    };
+                    window.addEventListener("keydown", startKeyListener);
+                });
             });
         }, err => {
             console.error("Failed to retrieve lyrics", err);
@@ -585,13 +589,20 @@ const timingFunctions: {[name: string]: (x: number) => number} = {
     easeIn: bezier(0.42, 0, 1, 1),
     easeOut: bezier(0, 0, 0.58, 1),
     easeInOut: bezier(0.42, 0, 0.58, 1),
+    uneaseInOut: bezier(0, 0.75, 1, 0.25),
+    sin: x => Math.sin(x * Math.PI * 2)
 };
-const postprocessingFunctions: {[name: string]: (timedProgress: number, linearProgress: number) => number} = {
+const postprocessingFunctions: {[name: string]: (timedProgress: number, preprocessedProgress: number) => number} = {
     none: x => x,
     oscillate1: oscillateFunctionGenerator(1),
     oscillate2: oscillateFunctionGenerator(2),
     oscillate4: oscillateFunctionGenerator(4),
 };
+const preprocessingFunctions: {[name: string]: (progress: number) => number} = {
+    clamp: clamp,
+    none: x => x,
+    loop: x => mod(x, 1)
+}
 interface Timer {
     name: string,
     fromReference: string,
@@ -603,7 +614,7 @@ interface Timer {
 };
 function parseTimers(timersString: string): Array<Timer> {
     return timersString.split(",").filter(s => s).map(timerString => {
-        let [name, fromReference, fromOffset, toReference, toOffset, forwardTimingFunctionName, reverseTimingFunctionName, postprocessingFunctionName] = timerString.trim().split(" ");
+        let [name, fromReference, fromOffset, toReference, toOffset, forwardTimingFunctionName, reverseTimingFunctionName, postprocessingFunctionName, preprocessingFunctionName] = timerString.trim().split(" ");
 
         if(!forwardTimingFunctionName) {
             forwardTimingFunctionName = "linear";
@@ -625,23 +636,31 @@ function parseTimers(timersString: string): Array<Timer> {
         if(!postprocessingFunctions[postprocessingFunctionName]) {
             throw new Error("Attempt to use non-existent postprocessing function " + postprocessingFunctionName);
         }
+        if(!preprocessingFunctionName) {
+            preprocessingFunctionName = "clamp";
+        }
+        if(!preprocessingFunctions[preprocessingFunctionName]) {
+            throw new Error("Attempt to use non-existent preprocessing function " + preprocessingFunctionName);
+        }
 
         const forwardTimingFunction = timingFunctions[forwardTimingFunctionName];
         const reverseTimingFunction = reverseTimingFunctionName ? timingFunctions[reverseTimingFunctionName] : null;
         const postprocessingFunction = postprocessingFunctions[postprocessingFunctionName];
+        const preprocessingFunction = preprocessingFunctions[preprocessingFunctionName];
 
         const timingFunction = (linearProgress) => {
+            const preprocessedProgress = preprocessingFunction(linearProgress);
             const timedProgress = reverseTimingFunction ?
                 (
-                    linearProgress < 0.5 ?
-                    forwardTimingFunction(unlerp(linearProgress, 0, 0.5)) :
-                    lerp(reverseTimingFunction(unlerp(linearProgress, 0.5, 1)), 1, 0)
+                    preprocessedProgress < 0.5 ?
+                    forwardTimingFunction(unlerp(preprocessedProgress, 0, 0.5)) :
+                    lerp(reverseTimingFunction(unlerp(preprocessedProgress, 0.5, 1)), 1, 0)
                 ) :
-                forwardTimingFunction(linearProgress);
+                forwardTimingFunction(preprocessedProgress);
         
-            const postprocessed = postprocessingFunction ? postprocessingFunction(timedProgress, linearProgress) : timedProgress;
+            const postprocessedProgress = postprocessingFunction ? postprocessingFunction(timedProgress, preprocessedProgress) : timedProgress;
         
-            return postprocessed;
+            return postprocessedProgress;
         }
 
         return {
@@ -658,20 +677,41 @@ function parseTimers(timersString: string): Array<Timer> {
 function getTimerValue(timer: Timer, time: number, referenceValues: {[name: string]: number}): number {
     const from = referenceValues[timer.fromReference] + timer.fromOffset;
     const to = referenceValues[timer.toReference] + timer.toOffset;
-    const linearProgress = clamp(unlerp(time, from, to));
+    const linearProgress = unlerp(time, from, to);
     return timer.timingFunction(linearProgress);
 }
 
 function layoutLyrics() {
     let previousVoiceWidths = [];
 
+    const containerRect = container.getBoundingClientRect();
+    container.style.setProperty("--container-width", "" + containerRect.width);
+    container.style.setProperty("--container-height", "" + containerRect.height);
+
     for(let card of renderedLyrics.cards) {
         // It's important to ensure that all voices have the same height, otherwise the separator will move and it will look bad
+        container.classList.add("layout"); // Allow custom CSS to undo things that might interfere with the layout process
         const voiceElms = card.voices.map(v => v.voiceElm);
         const voiceContentsElms = card.voices.map(v => v.contentsElm);
+        voiceContentsElms.forEach(voiceElm => voiceElm.style.height = "auto");
+
+        const cardRect = card.cardElm.getBoundingClientRect();
         card.cardElm.style.setProperty("--max-voice-height", "0");
         const maxVoiceHeight = Math.max(...voiceContentsElms.map(voiceElm => voiceElm.getBoundingClientRect().height));
+        for(let v of card.voices) {
+            const voiceContentsRect = v.contentsElm.getBoundingClientRect();
+            v.voiceElm.style.setProperty("--voice-contents-left-within-card", "" + (voiceContentsRect.left - cardRect.left));
+            v.voiceElm.style.setProperty("--voice-contents-top-within-card", "" + (voiceContentsRect.top - cardRect.top));
+            for(let w of v.words) {
+                const wordRect = w.wordElm.getBoundingClientRect();
+                w.wordElm.style.setProperty("--word-width", "" + wordRect.width);
+                w.wordElm.style.setProperty("--word-height", "" + wordRect.height);
+                w.wordElm.style.setProperty("--word-left-within-voice-contents", "" + (wordRect.left - voiceContentsRect.left));
+                w.wordElm.style.setProperty("--word-top-within-voice-contents", "" + (wordRect.top - voiceContentsRect.top));
+            }
+        };
         card.cardElm.style.setProperty("--max-voice-height", "" + maxVoiceHeight);
+        container.classList.remove("layout");
 
         // Here's some extra data that's used for separator sizing (e.g. etoile et toi)
         const voiceWidths = voiceContentsElms.map(contentsElm => contentsElm.getBoundingClientRect().width);

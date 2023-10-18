@@ -1,0 +1,191 @@
+@import url('https://fonts.googleapis.com/css?family=Rouge+Script&display=block');
+
+.start {
+    font-family: 'Rouge Script', cursive;
+    font-size: 1rem;
+}
+
+.lyricsContainer.fallen-angel {
+    $pi: 3.14159265359;
+    $tau: $pi * 2;
+
+    $text-movement-time: 1;
+    $card-transition-time: 1;
+    $arc-angle: $tau / 6;
+    $start-angle: $arc-angle * 0.1;
+    $end-angle: $arc-angle * -0.05;
+    $rotate-in-angle: $tau / 4;
+    $rotate-out-angle: $tau / 4;
+
+    $spinner-bpm: 95;
+    $spinner-colours: (#DDD390, #C1817F, #849FCC, #CCA5B9);
+    $spinner-revolution-time: length($spinner-colours) * 60 / $spinner-bpm;
+    $rock-time: 4 * 60 / $spinner-bpm;
+
+    $chorus-rotate-time: 1;
+    $chorus-offset: $chorus-rotate-time * 0.2;
+    $chorus-fade-time: $chorus-rotate-time * 0.8;
+    $chorus-lift-distance: 0.1;
+    $chorus-lift-time: 0.3;
+    
+    width: 100vw;
+    height: 100vh;
+
+    position: relative;
+    font-family: 'Rouge Script', cursive;
+    font-size: 1rem;
+
+    --radius: calc(var(--container-width) / #{$arc-angle});
+    --circumference: calc(var(--radius) * $tau);
+    --cue-timers: --spinner start.start 0 start.start #{$spinner-revolution-time} linear none none loop, --rock start.start 0 start.start #{$rock-time} easeInOut easeInOut none loop;
+
+    &::before {
+        content: ' ';
+        display: block;
+
+        width: calc(#{length($spinner-colours) + 1} * 100vw);
+        height: 100vh;
+
+        top: 0;
+        left: 0;
+
+        background: linear-gradient(to right, $spinner-colours, nth($spinner-colours, 1), nth($spinner-colours, 2));
+        //background-position: calc(calc(var(--spinner) * -100vw * #{length($spinner-colours)})) top;
+
+        transform: translateX(calc(var(--spinner) * -100vw * #{length($spinner-colours)}));
+    }
+
+    .card {
+        --card-timers: --fade-in start -#{$text-movement-time} end #{$card-transition-time} instant instantOut, --slow-rotate start -#{$text-movement-time} end #{$card-transition-time} linear, --rotate-out end -#{$card-transition-time} end 0 easeIn;
+
+        transform-origin: 50% calc(50% + var(--radius) * 1px);
+        transform: rotate(calc((var(--slow-rotate) * (#{$end-angle - $start-angle}) + #{$start-angle}) * 1rad + (var(--rotate-out) * -#{$rotate-out-angle}) * 1rad));
+
+        opacity: var(--fade-in);
+
+        margin-top: -1.5rem;
+
+        .contents {
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            transform: translateY(-50%);
+            text-align: center;
+        }
+
+        .voice {
+            display: block;
+            overflow: visible;
+            padding: 0;
+            font-size: 0;
+
+            --movement-direction: -1;
+
+            &:first-child {
+                --movement-direction: 1;
+            }
+
+            .voiceContents {
+                display: inline-block;
+
+                overflow: visible;
+                padding: 0.1rem;
+                font-size: 1rem;
+
+                white-space: nowrap;
+                
+                box-sizing: border-box;
+                min-height: calc(var(--max-voice-height) * 1px);
+
+                --voice-radius: calc(var(--radius) - var(--voice-contents-top-within-card) + var(--container-height) / 2);
+
+                .word {
+                    --word-timers: --rotate-in start -#{$text-movement-time} start 0 easeOut;
+
+                    --centre-offset: calc(var(--word-left-within-voice-contents) + var(--word-width) / 2 - var(--voice-width) / 2);
+                    --word-radius: calc(var(--voice-radius) - var(--word-top-within-voice-contents));
+                    --rotation: calc(var(--centre-offset) / var(--word-radius) * 1rad);
+                    
+                    display: inline-block;
+                    vertical-align: middle;
+            
+                    transform-origin: 50% calc(var(--word-radius) * 1px);
+                    transform: translateX(calc(var(--centre-offset) * -1px)) rotate(calc(var(--rotation) + (1 - var(--rotate-in)) * #{$rotate-in-angle} * 1rad));
+                }
+            }
+        }
+
+        &.chorus {
+            --card-timers: --rotate-in start #{0 - $chorus-rotate-time + $chorus-offset} start #{$chorus-offset} easeInOut, --rotate-out end #{0 - $chorus-rotate-time + $chorus-offset} end #{$chorus-offset} easeInOut, --fade-in start -#{$chorus-fade-time} start 0 linear, --fade-out end -#{$chorus-fade-time} end 0 linear;
+
+            margin-top: 1.5rem;
+
+            transform: none;
+            opacity: calc(var(--fade-in) - var(--fade-out));
+
+            .voice .voiceContents {
+                transform-origin: center center;
+                
+                transform: rotate(calc((1 - var(--rotate-in) - var(--rotate-out)) * 0.5turn));
+
+                .word {
+                    --word-timers: --fade-in start -0.2 start 0 linear, --fade-out end 0 end 0.5 linear, --raise start -#{$chorus-lift-time} end #{$chorus-lift-time} easeInOut easeInOut;
+
+                    position: relative;
+
+                    color: white;
+                    opacity: calc(50% + (var(--fade-in) - var(--fade-out)) * 50%);
+
+                    transform: translateY(calc(var(--raise) * -1rem * #{$chorus-lift-distance}));
+                }
+            }
+        }
+
+        &.instrumental {
+            --card-timers: --fade-in start -#{$card-transition-time} start 0 linear, --fade-out end -#{$card-transition-time} end 0 linear, --progress start 0 end 0 linear;
+
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            height: 10px;
+
+            margin-top: 0;
+            width: 30%;
+
+            border: 1px solid white;
+
+            transform: translate(-50%, -50%) rotate(calc(1deg * (var(--rock) - 0.5) * 2));
+            transform-origin: 50% 50%;
+
+            opacity: calc(var(--fade-in) * (1 - var(--fade-out)));
+
+            &::before {
+                display: block;
+                content: ' ';
+
+                position: absolute;
+                top: 0%;
+                left: 0%;
+                height: 100%;
+                width: calc(var(--progress) * 100%);
+
+                background: white;
+            }
+        }
+    }
+
+    &.layout {
+        .card {
+            transform: none;
+        }
+
+        .card .voice .voiceContents .word {
+            transform: none;
+        }
+
+        .card.chorus .voice .voiceContents .word {
+            position: static;
+        }
+    }
+}
