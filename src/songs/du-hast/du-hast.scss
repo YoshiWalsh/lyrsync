@@ -1,3 +1,5 @@
+@use 'sass:math';
+
 @import url('https://fonts.googleapis.com/css?family=Teko&display=block');
 
 .start {
@@ -142,7 +144,7 @@
         $i: 0;
         @each $note in $notes {
             &.#{$note} {
-                top: #{(5-$i) * 100% / 6};
+                top: #{(5-$i) * math.div(100%, 6)};
                 opacity: calc(var(--display-#{$note}) - var(--fade-#{$note}));
             }
 

@@ -1,3 +1,5 @@
+@use 'sass:math';
+
 @import url('https://fonts.googleapis.com/css?family=Rouge+Script&display=block');
 
 .start {
@@ -11,16 +13,16 @@
 
     $text-movement-time: 1;
     $card-transition-time: 1;
-    $arc-angle: $tau / 6;
+    $arc-angle: math.div($tau, 6);
     $start-angle: $arc-angle * 0.1;
     $end-angle: $arc-angle * -0.05;
-    $rotate-in-angle: $tau / 4;
-    $rotate-out-angle: $tau / 4;
+    $rotate-in-angle: math.div($tau, 4);
+    $rotate-out-angle: math.div($tau, 4);
 
     $spinner-bpm: 95;
     $spinner-colours: (#DDD390, #C1817F, #849FCC, #CCA5B9);
-    $spinner-revolution-time: length($spinner-colours) * 60 / $spinner-bpm;
-    $rock-time: 4 * 60 / $spinner-bpm;
+    $spinner-revolution-time: math.div(length($spinner-colours) * 60, $spinner-bpm);
+    $rock-time: math.div(4 * 60, $spinner-bpm);
 
     $chorus-rotate-time: 1;
     $chorus-offset: $chorus-rotate-time * 0.2;
@@ -36,7 +38,7 @@
     font-size: 1rem;
 
     --radius: calc(var(--container-width) / #{$arc-angle});
-    --circumference: calc(var(--radius) * $tau);
+    --circumference: calc(var(--radius) * #{$tau});
     --cue-timers: --spinner start.start 0 start.start #{$spinner-revolution-time} linear none none loop, --rock start.start 0 start.start #{$rock-time} easeInOut easeInOut none loop;
 
     &::before {
