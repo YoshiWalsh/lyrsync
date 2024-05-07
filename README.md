@@ -9,14 +9,14 @@ Lyrics are provided in files based on the [Enhanced LRC format](https://en.wikip
  - "Lines" from the LRC format are now referred to as "cards". Each card can span multiple lines in the text file
  - Each card can contain multiple "voices". For example, you could have separate voices for the lead vocalist & backing vocalists, or you could use one voice for a song's original lyrics and another voice for a translation
  - Compressed/deduplicated LRC files (ones where a single line in the file might have multiple Line Time Tags) are no longer supported. (They didn't make much sense if you were using Word Time Tags anyway)
- - Each card/word can be assigned a class to allow for giving them different styles (see [Komm, süßer Tod](https://lyrsync.joshwalsh.me/songs/komm-susser-tod/index.html) for an example)
- - Arbitrary "cues" can be defined to trigger animation effects at certain points in the song (see [Rammstein - Du Hast](https://lyrsync.joshwalsh.me/songs/du-hast/index.html) for an example)
+ - Each card/word can be assigned a class to allow for giving them different styles (see [Komm, süßer Tod](https://lyrsync.yoshiwalsh.me/songs/komm-susser-tod/index.html) for an example)
+ - Arbitrary "cues" can be defined to trigger animation effects at certain points in the song (see [Rammstein - Du Hast](https://lyrsync.yoshiwalsh.me/songs/du-hast/index.html) for an example)
 
 ## How do the animations work?
 
 Typically if you want to allow styling animations from CSS, you would use either transitions or animations. However when it comes to synchronising those animations with music, neither approach is very reliable. The main reason for this is that it's impossible for JavaScript to 'seek' through an animation or transition. You'd need to start the transition/animation at the exact right moment, which means it would be framerate-dependant. Additionally, if the user quickly seeked through the song the animations would go haywire.
 
-In previous web-based lyrics synchronisation projects I made, (e.g. [LyrTube](https://github.com/JoshuaWalsh/LyrTube) or [etoile et toi](http://sandbox.ymindustries.com/etoile-et-toi/)) I handled the animations purely in JavaScript. But this approach meant that in order to change any styling, you would have to change the JavaScript code. I wanted to style different songs in different ways, but I didn't want to have to maintain separate JavaScript for each song. Thanks to [CSS custom properties](https://developer.mozilla.org/en-US/docs/Web/CSS/Using_CSS_custom_properties) I have managed to achieve CSS-based animations that are completely controllable via JavaScript.
+In previous web-based lyrics synchronisation projects I made, (e.g. [LyrTube](https://github.com/YoshiWalsh/LyrTube) or [etoile et toi](http://sandbox.ymindustries.com/etoile-et-toi/)) I handled the animations purely in JavaScript. But this approach meant that in order to change any styling, you would have to change the JavaScript code. I wanted to style different songs in different ways, but I didn't want to have to maintain separate JavaScript for each song. Thanks to [CSS custom properties](https://developer.mozilla.org/en-US/docs/Web/CSS/Using_CSS_custom_properties) I have managed to achieve CSS-based animations that are completely controllable via JavaScript.
 
 ### Timers
 
